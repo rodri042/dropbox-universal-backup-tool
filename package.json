@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/rodri042/dropbox-unix-backup-tool/issues"
   },
-  "homepage": "https://github.com/rodri042/dropbox-unix-backup-tool#readme"
+  "homepage": "https://github.com/rodri042/dropbox-unix-backup-tool#readme",
+  "dependencies": {
+    "coffee-script": "^1.10.0"
+  }
 }
