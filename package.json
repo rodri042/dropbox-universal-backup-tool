@@ -1,0 +1,19 @@
+{
+  "name": "dxubt",
+  "version": "1.0.0",
+  "description": "Dropbox Unix Backup Tool",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/rodri042/dropbox-unix-backup-tool.git"
+  },
+  "author": "Rodrigo Alfonso",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rodri042/dropbox-unix-backup-tool/issues"
+  },
+  "homepage": "https://github.com/rodri042/dropbox-unix-backup-tool#readme"
+}
