@@ -1,3 +1,3 @@
 require("coffee-script/register")
 
-require("./main")
+require("./src/main")
