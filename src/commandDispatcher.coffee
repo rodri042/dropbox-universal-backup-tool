@@ -19,16 +19,16 @@ options = require("node-getopt").create [
 	["f", "from=PATH", "Local source path."]
 	["t", "to=DROPBOX_PATH", "Dropbox destination path."]
 	["k", "token=TOKEN", "Dropbox token."]
-	["s", "simulate", "Only show the changes."]
+	["y", "yes", "Don't review changes before the sync."]
 	["m", "me", "Show the user's Dropbox information."]
-	["d", "debug", "Show the stacktraces in errors."]
+	["d", "debug", "Show detailed traces for debugging."]
 	["v", "version", "Display the version."]
 	["h", "help", "Display this help."]
 ]
 
 options.setHelp(
 	"Usages:\n".cyan +
-	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--simulate]\n".cyan +
+	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--yes]\n".cyan +
 	"./dxubt.js --me --token=blah\n".cyan +
 	"\n" +
 	"[[OPTIONS]]\n"
