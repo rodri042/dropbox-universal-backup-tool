@@ -35,7 +35,7 @@ for option of actions
 			actions[option]() ; return
 		catch e
 			if _.isString e
-				console.log "Error: #{e}."
+				console.log "Error: #{e}.".red ; return
 			else throw e
 
 # run the default action
