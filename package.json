@@ -4,7 +4,7 @@
   "description": "Dropbox Unix Backup Tool",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node dxubt.js"
   },
   "repository": {
     "type": "git",
@@ -15,6 +15,10 @@
   "dependencies": {
     "bluebird": "^2.9.34",
     "coffee-script": "^1.10.0",
-    "dropbox": "^0.10.3"
+    "colors": "^1.1.2",
+    "dropbox": "^0.10.3",
+    "getopt": "^0.1.0",
+    "lodash": "^3.10.1",
+    "node-getopt": "^0.2.3"
   }
 }
