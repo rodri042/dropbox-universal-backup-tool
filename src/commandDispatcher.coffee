@@ -1,4 +1,5 @@
 BackupTool = require("./backupTool")
+isPromise = require("is-promise")
 _ = require("lodash")
 require("colors")
 
@@ -20,6 +21,7 @@ options = require("node-getopt").create [
 	["k", "token=TOKEN", "Dropbox token."]
 	["s", "simulate", "Only show the changes."]
 	["m", "me", "Show the user's Dropbox information."]
+	["d", "debug", "Show the stacktraces in errors."]
 	["v", "version", "Display the version."]
 	["h", "help", "Display this help."]
 ]
@@ -45,5 +47,9 @@ config.checkParams = (params...) ->
 # run the first or the default action
 for option of actions
 	if config.options[option]?
-		actions[option]() ; return
+		value = actions[option]()
+		if isPromise(value) and not config.options.debug
+			value.catch (e) =>
+				console.log (e.message || e).red
+		return
 actions.help()

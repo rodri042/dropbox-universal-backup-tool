@@ -1,16 +1,18 @@
-Dropbox = require("dropbox")
-Promise = require("bluebird")
+DropboxApi = require("./dropboxApi")
 require("colors")
 
 module.exports =
 
 class BackupTool
 	constructor: (@options) ->
-		@client = Promise.promisifyAll new Dropbox.Client
-			token: @options.token
+		@dropboxApi = new DropboxApi(@options.token)
+
+	sync: =>
+		@dropboxApi.readDir(@options.to).then (entries) =>
+			console.log entries
 
 	showInfo: =>
-		@client.getAccountInfoAsync().spread (user) =>
+		@dropboxApi.getAccountInfo().then (user) =>
 			toGiB = (n) => (n / Math.pow(1024, 3)).toFixed 2
 			console.log(
 				"User information:\n\n".cyan +
