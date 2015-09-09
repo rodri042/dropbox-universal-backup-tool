@@ -30,9 +30,6 @@ class DropboxApi extends EventEmitter
 							), path: stat.path.replace path, ""
 						.value()
 
-	stat: (path) =>
-		@client.statAsync path
-
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()
 			.spread (user) => user
