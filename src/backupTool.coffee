@@ -10,17 +10,15 @@ class BackupTool
 	constructor: (@options) ->
 		@dropboxApi = new DropboxApi(@options.token)
 
-	sync: =>
+	getFilesAndSync: =>
 		@dropboxApi.getAccountInfo().then ({ usedQuota }) =>
-			onRead = (size) => @showReadingState size, usedQuota
+			onRead = (size) => @_showReadingState size, usedQuota
 			@dropboxApi.on "reading", onRead
 
 			Promise.props
 				local: fsWalker @options.from
 				remote: @dropboxApi.readDir @options.to
-			.then ({ local, remote }) =>
-				console.log local
-				console.log remote
+			.then @_sync
 			.finally =>
 				@dropboxApi.removeListener "reading", onRead
 
@@ -35,7 +33,11 @@ class BackupTool
 				"Quota: #{toGiB(user.usedQuota)} GiB / #{toGiB(user.quota)} GiB"
 			)
 
-	showReadingState: (size, total) =>
+	_sync: ({ local, remote }) =>
+		console.log local
+		console.log remote
+
+	_showReadingState: (size, total) =>
 		console.log(
 			"Reading remote files:".cyan
 			((size / total) * 100).toFixed(2).green + "%".cyan

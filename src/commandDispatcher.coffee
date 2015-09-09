@@ -5,7 +5,7 @@ require("colors")
 
 actions =
 	"from": ->
-		new BackupTool(config.checkParams("to", "token")).sync()
+		new BackupTool(config.checkParams("to", "token")).getFilesAndSync()
 	"me": ->
 		new BackupTool(config.checkParams "token").showInfo()
 	"version": ->
