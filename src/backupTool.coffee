@@ -11,11 +11,11 @@ class BackupTool
 	sync: =>
 		@dropboxApi.getAccountInfo().then ({ usedQuota }) =>
 			onRead = (size) => @showReadingState size, usedQuota
-			@dropboxApi.events.on "reading", onRead
+			@dropboxApi.on "reading", onRead
 
 			@dropboxApi.readDir(@options.to).then (entries) =>
 				console.log entries
-				@dropboxApi.events.removeListener "reading", onRead
+				@dropboxApi.removeListener "reading", onRead
 
 	showInfo: =>
 		@dropboxApi.getAccountInfo().then (user) =>
