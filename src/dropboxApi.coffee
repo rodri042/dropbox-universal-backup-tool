@@ -1,4 +1,4 @@
-Dropbox = require("dropbox")
+Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 EventEmitter = require("events").EventEmitter
 _ = require("lodash")
@@ -10,19 +10,24 @@ class DropboxApi
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 		@events = new EventEmitter()
 
-	readDir: (path) =>
-		@events.emit "resolving", path
-		@client.readdirAsync(path)
-			.catch => throw "Error reading the directory #{path}."
-			.spread (__, ___, entries) =>
-				files = _.reject entries, "isFolder"
-				folders = _.filter entries, "isFolder"
+	readDir: (path, tail = { changes: [] }) =>
+		@client.deltaAsync(tail.cursorTag, pathPrefix: path)
+			.catch (e) => throw "Error reading the remote directory #{path}."
+			.then (delta) =>
+				delta.changes = tail.changes.concat delta.changes
+				@events.emit "reading", _.sum delta.changes, "stat.size"
 
-				promises = folders.map (entry) => @readDir entry.path
+				if delta.shouldPullAgain
+					@readDir path, delta
+				else delta.changes.map (change) =>
+					_.assign _.pick(
+						change.stat
+						"name", "size"
+						"isFolder", "isFile", "clientModifiedAt"
+					), path: change.path
 
-				Promise.all(promises).then (foldersContent) =>
-					@events.emit "resolved", path
-					_.flatten folders.concat(files).concat(foldersContent)
+	stat: (path) =>
+		@client.statAsync path
 
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()

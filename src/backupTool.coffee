@@ -7,11 +7,15 @@ module.exports =
 class BackupTool
 	constructor: (@options) ->
 		@dropboxApi = new DropboxApi(@options.token)
-		@_subscribeToDebugEvents()
 
 	sync: =>
-		@dropboxApi.readDir(@options.to).then (entries) =>
-			console.log _.map entries, "path"
+		@dropboxApi.getAccountInfo().then ({ usedQuota }) =>
+			onRead = (size) => @showReadingState size, usedQuota
+			@dropboxApi.events.on "reading", onRead
+
+			@dropboxApi.readDir(@options.to).then (entries) =>
+				console.log entries
+				@dropboxApi.events.removeListener "reading", onRead
 
 	showInfo: =>
 		@dropboxApi.getAccountInfo().then (user) =>
@@ -24,9 +28,8 @@ class BackupTool
 				"Quota: #{toGiB(user.usedQuota)} GiB / #{toGiB(user.quota)} GiB"
 			)
 
-	_subscribeToDebugEvents: =>
-		if @options.debug
-			@dropboxApi.events.on "resolving", (path) =>
-				console.log "Resolving #{path}..."
-			@dropboxApi.events.on "resolved", (path) =>
-				console.log "Resolved #{path}."
+	showReadingState: (size, total) =>
+		console.log(
+			"Reading remote files:".cyan
+			((size / total) * 100).toFixed(2).green + "%".cyan
+		)
