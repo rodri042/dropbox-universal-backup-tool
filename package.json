@@ -20,6 +20,7 @@
     "getopt": "^0.1.0",
     "is-promise": "^2.1.0",
     "lodash": "^3.10.1",
-    "node-getopt": "^0.2.3"
+    "node-getopt": "^0.2.3",
+    "walk": "^2.3.9"
   }
 }

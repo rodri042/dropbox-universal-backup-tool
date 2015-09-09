@@ -18,12 +18,17 @@ class DropboxApi extends EventEmitter
 
 				if delta.shouldPullAgain
 					@readDir path, delta
-				else delta.changes.map (change) =>
-					_.assign _.pick(
-						change.stat
-						"name", "size"
-						"isFolder", "isFile", "clientModifiedAt"
-					), path: change.path
+				else
+					_(delta.changes)
+						.map (change) => change.stat
+						.filter isFile: true
+						.map (stat) =>
+							_.assign _.pick(
+								stat
+								"path", "name"
+								"size", "clientModifiedAt"
+							), path: stat.path.replace path, ""
+						.value()
 
 	stat: (path) =>
 		@client.statAsync path

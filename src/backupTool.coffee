@@ -1,4 +1,6 @@
 DropboxApi = require("./dropboxApi")
+Promise = require("bluebird")
+fsWalker = require("./fsWalker")
 _ = require("lodash")
 require("colors")
 
@@ -13,8 +15,13 @@ class BackupTool
 			onRead = (size) => @showReadingState size, usedQuota
 			@dropboxApi.on "reading", onRead
 
-			@dropboxApi.readDir(@options.to).then (entries) =>
-				console.log entries
+			Promise.props
+				local: fsWalker @options.from
+				remote: @dropboxApi.readDir @options.to
+			.then ({ local, remote }) =>
+				console.log local
+				console.log remote
+			.finally =>
 				@dropboxApi.removeListener "reading", onRead
 
 	showInfo: =>
