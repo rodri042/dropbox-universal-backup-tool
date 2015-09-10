@@ -4,10 +4,10 @@ _ = require("lodash")
 require("colors")
 
 actions =
-	"from": ->
-		new BackupTool(config.checkParams("to", "token")).getFilesAndSync()
 	"me": ->
 		new BackupTool(config.checkParams "token").showInfo()
+	"from": ->
+		new BackupTool(config.checkParams("to", "token")).getFilesAndSync()
 	"version": ->
 		console.log "1.0.0"
 	"help": ->
