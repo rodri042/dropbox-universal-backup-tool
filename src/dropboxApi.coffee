@@ -22,15 +22,17 @@ class DropboxApi extends EventEmitter
 					_(delta.changes)
 						.map (change) => change.stat
 						.filter isFile: true
-						.map (stat) =>
-							_.assign _.pick(
-								stat
-								"path", "name"
-								"size", "clientModifiedAt"
-							), path: stat.path.replace path, ""
+						.map (stats) => @_makeStats path, stats
 						.value()
 
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()
 			.spread (user) => user
 			.catch => throw "Error retrieving the user info."
+
+	_makeStats: (path, stats) =>
+		_.assign _.pick(
+			stats
+			"path", "name"
+			"size", "clientModifiedAt"
+		), path: stats.path.replace path, ""
