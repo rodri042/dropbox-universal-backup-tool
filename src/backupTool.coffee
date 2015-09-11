@@ -2,6 +2,8 @@ DropboxApi = require("./dropboxApi")
 Promise = require("bluebird")
 fsWalker = require("./fsWalker")
 dirComparer = require("./dirComparer")
+filesize = require("filesize")
+moment = require("moment")
 _ = require("lodash")
 require("colors")
 
@@ -31,18 +33,51 @@ class BackupTool
 
 	showInfo: =>
 		@dropboxApi.getAccountInfo().then (user) =>
-			toGiB = (n) => (n / Math.pow(1024, 3)).toFixed 2
 			console.log(
-				"User information:\n\n".cyan +
-				"User ID: #{user.uid}\n" +
-				"Name: #{user.name}\n" +
-				"Email: #{user.email}\n" +
-				"Quota: #{toGiB(user.usedQuota)} GiB / #{toGiB(user.quota)} GiB"
+				"User information:\n\n".white.bold.underline +
+				"User ID: ".white.bold + "#{user.uid}\n".white +
+				"Name: ".white.bold + "#{user.name}\n".white +
+				"Email: ".white.bold + "#{user.email}\n".white +
+				"Quota: ".white.bold + "#{filesize(user.usedQuota)} / #{filesize(user.quota)}".white
 			)
 
 	_sync: ({ local, remote }) =>
-		console.log dirComparer.compare(local, remote)
+		comparition = dirComparer.compare local, remote
 
+		console.log "\nNew files:".white.bold.underline
+
+		console.log(comparition.newFiles
+			.map (it) =>
+				"  " + it.path.green + "\t" +
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+			.join "\n"
+		)
+
+		console.log "\nModified files:".white.bold.underline
+
+		console.log(comparition.modifiedFiles
+			.map (it) =>
+				"  " + it.path.yellow + "\t" +
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+			.join "\n"
+		)
+
+		console.log "\nDeleted files:".white.bold.underline
+
+		console.log(comparition.deletedFiles
+			.map (it) =>
+				"  " + it.path.red + "\t" +
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+			.join "\n"
+		)
+
+		console.log "\nTotal:".white.bold.underline
+		console.log "  #{comparition.newFiles.length} to upload."
+		console.log "  #{comparition.modifiedFiles.length} to re-upload."
+		console.log "  #{comparition.deletedFiles.length} to delete."
 	_showReadingState: (size, total) =>
 		console.log(
 			"Reading remote files:".cyan

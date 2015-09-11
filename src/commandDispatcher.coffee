@@ -31,7 +31,7 @@ options.setHelp(
 	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--yes]\n".cyan +
 	"./dxubt.js --me --token=blah\n".cyan +
 	"\n" +
-	"[[OPTIONS]]"
+	"[[OPTIONS]]".white
 )
 
 config = options.parseSystem()
