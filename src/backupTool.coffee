@@ -78,6 +78,7 @@ class BackupTool
 		console.log "  #{comparition.newFiles.length} to upload."
 		console.log "  #{comparition.modifiedFiles.length} to re-upload."
 		console.log "  #{comparition.deletedFiles.length} to delete."
+
 	_showReadingState: (size, total) =>
 		console.log(
 			"Reading remote files:".cyan
