@@ -84,14 +84,17 @@ class Cli
 				input: process.stdin
 				output: process.stdout
 
-			if @options.yes then return resolve()
+			if @options.yes
+				readLine.close()
+				return resolve()
+
 			ask = =>
 				readLine.question "\nDo you accept? (y/n) ".cyan, (ans) =>
 					ans = ans.toLowerCase()
 					if ans isnt "y" and ans isnt "n" then return ask()
 
-					if ans is "y" then resolve() else reject()
 					readLine.close()
+					if ans is "y" then resolve() else reject()
 			ask()
 
 	_showReadingState: (size, total) =>
