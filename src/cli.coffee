@@ -1,7 +1,7 @@
 BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
 moment = require("moment")
-readlineSync = require("readline-sync")
+prompt = require("readline")
 _ = require("lodash")
 require("colors")
 
@@ -74,20 +74,24 @@ class Cli
 		console.log "  #{comparision.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
 		console.log "  #{comparision.deletedFiles.length} to delete.".white
 
-		prompt = require('readline');
-		readLine = prompt.createInterface
-			input: process.stdin
-			output: process.stdout
+		@_doYouAccept()
+			.then => console.log "YES"
+			.catch => console.log "NO"
 
-		doYouAccept = ->
-			readLine.question "\nDo you accept? (Y/n) ".cyan, (ans) ->
-				ans = ans.toLowerCase()
-				if ans isnt "y" and ans isnt "n" then return doYouAccept()
+	_doYouAccept: =>
+		new Promise (resolve, reject) =>
+			readLine = prompt.createInterface
+				input: process.stdin
+				output: process.stdout
 
-				console.log "OK"
-				readLine.close()
+			ask = =>
+				readLine.question "\nDo you accept? (Y/n) ".cyan, (ans) =>
+					ans = ans.toLowerCase()
+					if ans isnt "y" and ans isnt "n" then return ask()
 
-		doYouAccept()
+					if ans is "y" then resolve() else reject()
+					readLine.close()
+			ask()
 
 	_showReadingState: (size, total) =>
 		console.log(
