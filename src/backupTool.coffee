@@ -4,6 +4,7 @@ fsWalker = require("./fsWalker")
 dirComparer = require("./dirComparer")
 filesize = require("filesize")
 moment = require("moment")
+readlineSync = require("readline-sync")
 _ = require("lodash")
 require("colors")
 
@@ -57,10 +58,12 @@ class BackupTool
 		console.log "\nModified files:".white.bold.underline
 
 		console.log(comparition.modifiedFiles
-			.map (it) =>
-				"  " + it.path.yellow + "\t" +
-				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+			.map ([local, remote, hasDiffs]) =>
+				path = "  " + local.path.yellow
+				if hasDiffs.size
+					path += "\t" + "(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white
+				if hasDiffs.date
+					path += "\t" + "@ ".white + "#{moment(remote.clientModifiedAt).format('YYYY-MM-DD')}".red + " -> ".gray + "#{moment(local.clientModifiedAt).format('YYYY-MM-DD')}".green
 			.join "\n"
 		)
 
@@ -74,10 +77,28 @@ class BackupTool
 			.join "\n"
 		)
 
-		console.log "\nTotal:".white.bold.underline
-		console.log "  #{comparition.newFiles.length} to upload."
-		console.log "  #{comparition.modifiedFiles.length} to re-upload."
-		console.log "  #{comparition.deletedFiles.length} to delete."
+		totalUpload = filesize _.sum(comparition.newFiles, "size")
+		totalReUpload = filesize _.sum(comparition.modifiedFiles.map(([l]) => l), "size")
+		console.log "\nTotals:".white.bold.underline
+		console.log "  #{comparition.newFiles.length} to upload (#{totalUpload}).".white
+		console.log "  #{comparition.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
+		console.log "  #{comparition.deletedFiles.length} to delete.".white
+
+		prompt = require('readline');
+		readLine = prompt.createInterface
+			input: process.stdin
+			output: process.stdout
+
+		doYouAccept = ->
+			readLine.question "\nDo you accept? (Y/n) ".cyan, (ans) ->
+				ans = ans.toLowerCase()
+				if ans isnt "y" and ans isnt "n" then return doYouAccept()
+
+				console.log "OK"
+				readLine.close()
+
+		doYouAccept()
+
 	_showReadingState: (size, total) =>
 		console.log(
 			"Reading remote files:".cyan
