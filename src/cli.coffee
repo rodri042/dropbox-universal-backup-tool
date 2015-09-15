@@ -85,7 +85,7 @@ class Cli
 				output: process.stdout
 
 			ask = =>
-				readLine.question "\nDo you accept? (Y/n) ".cyan, (ans) =>
+				readLine.question "\nDo you accept? (y/n) ".cyan, (ans) =>
 					ans = ans.toLowerCase()
 					if ans isnt "y" and ans isnt "n" then return ask()
 
