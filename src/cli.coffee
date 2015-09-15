@@ -20,7 +20,7 @@ class Cli
 
 			@backupTool
 				.getFilesAndCompare @options.from, @options.to
-				.then @_sync
+				.then @_askForSync
 				.finally =>
 					@backupTool.removeListener "reading", onRead
 
@@ -34,7 +34,7 @@ class Cli
 				"Quota: ".white.bold + "#{filesize(user.usedQuota)} / #{filesize(user.quota)}".white
 			)
 
-	_sync: (comparision) =>
+	_askForSync: (comparision) =>
 		console.log "\nNew files:".white.bold.underline
 
 		console.log(comparision.newFiles
