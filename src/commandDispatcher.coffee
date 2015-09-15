@@ -1,13 +1,13 @@
-BackupTool = require("./backupTool")
+Cli = require("./cli")
 isPromise = require("is-promise")
 _ = require("lodash")
 require("colors")
 
 actions =
 	"me": ->
-		new BackupTool(config.checkParams "token").showInfo()
+		new Cli(config.checkParams "token").showInfo()
 	"from": ->
-		new BackupTool(config.checkParams("to", "token")).getFilesAndSync()
+		new Cli(config.checkParams("to", "token")).getFilesAndSync()
 	"version": ->
 		console.log "1.0.0"
 	"help": ->
