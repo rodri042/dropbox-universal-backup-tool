@@ -84,6 +84,7 @@ class Cli
 				input: process.stdin
 				output: process.stdout
 
+			if @options.yes then return resolve()
 			ask = =>
 				readLine.question "\nDo you accept? (y/n) ".cyan, (ans) =>
 					ans = ans.toLowerCase()
