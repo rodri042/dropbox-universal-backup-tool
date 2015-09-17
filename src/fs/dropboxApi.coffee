@@ -1,6 +1,7 @@
 Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 { EventEmitter } = require("events")
+fs = require("fs")
 _ = require("lodash")
 
 module.exports =
@@ -24,6 +25,10 @@ class DropboxApi extends EventEmitter
 						.filter isFile: true
 						.map (stats) => @_makeStats path, stats
 						.value()
+
+	uploadFile: (localPath, remotePath) =>
+		content = fs.readFileSync localPath
+		@client.writeFileAsync remotePath, content
 
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()

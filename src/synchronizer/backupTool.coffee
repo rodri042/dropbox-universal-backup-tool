@@ -23,4 +23,18 @@ class BackupTool extends EventEmitter
 		Promise.props(promises).then ({ local, remote }) =>
 			dirComparer.compare local, remote
 
+	sync: (comparision) =>
+		uploads = comparision.newFiles.map (newFile) =>
+			=>
+				@emit "uploading", newFile
+				localPath = comparision.from + newFile.path
+				remotePath = comparision.to + newFile.path
+
+				@dropboxApi.uploadFile(localPath, remotePath)
+					.then => @emit "uploaded", newFile
+					.catch (e) => @emit "not-uploaded", newFile
+
+		pipeline = (previous, upload) => previous.finally upload
+		uploads.reduce pipeline, Promise.resolve()
+
 	getInfo: => @dropboxApi.getAccountInfo()

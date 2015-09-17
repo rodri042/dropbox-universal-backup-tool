@@ -75,8 +75,15 @@ class Cli
 		console.log "  #{comparision.deletedFiles.length} to delete.".white
 
 		@_doYouAccept()
-			.then => console.log "YES"
-			.catch => console.log "NO"
+			.then => @_sync comparision
+			.catch => process.exit 0
+
+	_sync: (comparision) =>
+		console.log "Syncing files...".white
+		fullPaths = _.pick @options, "to", "from"
+		@backupTool.sync _.assign(comparision, fullPaths)
+
+		# suscribirse a los eventos "uploading", "uploaded", "not-uploaded"
 
 	_doYouAccept: =>
 		new Promise (resolve, reject) =>
