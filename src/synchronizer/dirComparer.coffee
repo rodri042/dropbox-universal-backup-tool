@@ -22,4 +22,4 @@ class DirComparer
 
 	_missingItems: (one, another) =>
 		one.filter (o) =>
-			not _.find another, (a) => _.isEqual o, a
+			not _.find another, (a) => o.path is a.path
