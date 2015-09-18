@@ -8,7 +8,7 @@ class DirComparer
 		deletedFiles = @_missingItems remote, local
 
 		movedFiles =
-			_(deletedFiles)
+			_(_.clone deletedFiles)
 				.map (file) =>
 					movedFile = _.find newFiles, _.pick(file, "name", "size")
 
@@ -23,7 +23,7 @@ class DirComparer
 				.value()
 
 		modifiedFiles =
-			_(local)
+			_(_.clone local)
 				.concat(remote)
 				.groupBy "path"
 				.filter ([l, r]) =>
