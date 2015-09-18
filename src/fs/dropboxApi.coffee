@@ -33,6 +33,9 @@ class DropboxApi extends EventEmitter
 	deleteFile: (path) =>
 		@client.deleteAsync path
 
+	moveFile: (oldPath, newPath) =>
+		@client.moveAsync oldPath, newPath
+
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()
 			.spread (user) => user

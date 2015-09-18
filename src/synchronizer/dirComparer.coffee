@@ -4,15 +4,34 @@ module.exports = new
 
 class DirComparer
 	compare: (local, remote) =>
-		newFiles: @_missingItems local, remote
-		deletedFiles: @_missingItems remote, local
-		modifiedFiles:
+		newFiles = @_missingItems local, remote
+		deletedFiles = @_missingItems remote, local
+
+		movedFiles =
+			_(deletedFiles)
+				.map (file) =>
+					movedFile = _.find newFiles, _.pick(file, "name", "size")
+
+					if movedFile?
+						_.pull deletedFiles, file
+						_.pull newFiles, movedFile
+
+						oldPath: file.path
+						newPath: movedFile.path
+					else false
+				.compact()
+				.value()
+
+		modifiedFiles =
 			_(local)
 				.concat(remote)
 				.groupBy "path"
 				.filter ([l, r]) =>
 					(l? and r?) and (l.size isnt r.size)
 				.value()
+
+		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
+
 
 	_missingItems: (one, another) =>
 		one.filter (o) =>

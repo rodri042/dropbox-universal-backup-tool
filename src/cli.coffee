@@ -20,8 +20,11 @@ class Cli
 				console.log "Uploading ".white + file.path.yellow + "...".white
 			.on "deleting", (file) ->
 				console.log "Deleting ".white + file.path.yellow + "...".white
+			.on "moving", (file) ->
+				console.log "Moving ".white + file.oldPath.yellow + " to ".white + file.newPath.yellow + "...".white
 			.on "not-uploaded", onError
 			.on "not-deleted", onError
+			.on "not-moved", onError
 
 	getFilesAndSync: =>
 		@backupTool.getInfo().then ({ usedQuota }) =>
@@ -72,14 +75,24 @@ class Cli
 			.join "\n"
 		)
 
+		console.log "\nMoved files:".white.bold.underline
+
+		console.log(comparision.movedFiles
+			.map (it) =>
+				"  " + it.oldPath.red + " -> ".white +
+				it.newPath.green
+			.join "\n"
+		)
+
 		totalUpload = filesize _.sum(comparision.newFiles, "size")
 		totalReUpload = filesize _.sum(comparision.modifiedFiles.map(([l]) => l), "size")
 		console.log "\nTotals:".white.bold.underline
 		console.log "  #{comparision.newFiles.length} to upload (#{totalUpload}).".white
 		console.log "  #{comparision.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
 		console.log "  #{comparision.deletedFiles.length} to delete.".white
+		console.log "  #{comparision.movedFiles.length} to move.".white
 
-		totalChanges = comparision.newFiles.length + comparision.modifiedFiles.length + comparision.deletedFiles.length
+		totalChanges = comparision.newFiles.length + comparision.modifiedFiles.length + comparision.deletedFiles.length + comparision.movedFiles.length
 		if totalChanges is 0 then return
 
 		@_doYouAccept()

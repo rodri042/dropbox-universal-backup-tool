@@ -32,10 +32,12 @@ class BackupTool extends EventEmitter
 		uploads = getActions "newFiles", @_uploadFile
 		modifications = getActions "modifiedFiles", @_reuploadFile
 		deletions = getActions "deletedFiles", @_deleteFile
+		moves = getActions "movedFiles", @_moveFile
 
 		asyncPipeline(uploads).then =>
 			asyncPipeline(modifications).then =>
-				asyncPipeline deletions
+				asyncPipeline(deletions).then =>
+					asyncPipeline moves
 
 	getInfo: => @dropboxApi.getAccountInfo()
 
@@ -56,3 +58,9 @@ class BackupTool extends EventEmitter
 
 	_reuploadFile: ([local]) =>
 		@_uploadFile local
+
+	_moveFile: (file) =>
+		@emit "moving", file
+		@dropboxApi.moveFile(@to + file.oldPath, @to + file.newPath)
+			.then => @emit "moved", file
+			.catch (e) => @emit "not-moved", e
