@@ -83,6 +83,9 @@ class Cli
 		fullPaths = _.pick @options, "to", "from"
 		@backupTool.sync _.assign(comparision, fullPaths)
 
+		@backupTool.on "uploading", (file) ->
+			console.log file.path
+		@backupTool.on "uploaded", -> console.log "ahí ta"
 		# suscribirse a los eventos "uploading", "uploaded", "not-uploaded"
 
 	_doYouAccept: =>

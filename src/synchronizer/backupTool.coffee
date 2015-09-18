@@ -1,8 +1,9 @@
 Promise = require("bluebird")
 DropboxApi = require("../fs/dropboxApi")
+{ EventEmitter } = require("events")
 fsWalker = require("../fs/fsWalker")
 dirComparer = require("./dirComparer")
-{ EventEmitter } = require("events")
+asyncPipeline = require("../helpers/asyncPipeline")
 _ = require("lodash")
 
 module.exports =
@@ -25,16 +26,17 @@ class BackupTool extends EventEmitter
 
 	sync: (comparision) =>
 		uploads = comparision.newFiles.map (newFile) =>
-			=>
-				@emit "uploading", newFile
-				localPath = comparision.from + newFile.path
-				remotePath = comparision.to + newFile.path
+			=> @_uploadFile newFile, comparision
 
-				@dropboxApi.uploadFile(localPath, remotePath)
-					.then => @emit "uploaded", newFile
-					.catch (e) => @emit "not-uploaded", newFile
-
-		pipeline = (previous, upload) => previous.finally upload
-		uploads.reduce pipeline, Promise.resolve()
+		asyncPipeline uploads
 
 	getInfo: => @dropboxApi.getAccountInfo()
+
+	_uploadFile: (newFile, comparision) =>
+		@emit "uploading", newFile
+		localPath = comparision.from + newFile.path
+		remotePath = comparision.to + newFile.path
+
+		@dropboxApi.uploadFile(localPath, remotePath)
+			.then => @emit "uploaded", newFile
+			.catch (e) => @emit "not-uploaded", newFile
