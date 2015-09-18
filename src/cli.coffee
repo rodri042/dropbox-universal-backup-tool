@@ -9,8 +9,19 @@ module.exports =
 class Cli
 	constructor: (@options) ->
 		@backupTool = new BackupTool(@options)
-		@backupTool.on "still-reading", =>
-			console.log "Still reading local files...".cyan
+		onError = (e) ->
+			console.log "^ it didn't work".red
+			console.log "#{e}".red
+
+		@backupTool
+			.on "still-reading", =>
+				console.log "Still reading local files...".cyan
+			.on "uploading", (file) ->
+				console.log "Uploading ".white + file.path.yellow + "...".white
+			.on "deleting", (file) ->
+				console.log "Deleting ".white + file.path.yellow + "...".white
+			.on "not-uploaded", onError
+			.on "not-deleted", onError
 
 	getFilesAndSync: =>
 		@backupTool.getInfo().then ({ usedQuota }) =>
@@ -76,16 +87,8 @@ class Cli
 			.catch => process.exit 0
 
 	_sync: (comparision) =>
-		console.log "\nSyncing files...".cyan.bold
+		console.log "\nSyncing files...\n".cyan.bold
 		@backupTool.sync comparision
-
-		@backupTool.on "uploading", (file) ->
-			console.log "uploadeando", file.path
-		@backupTool.on "uploaded", -> console.log "ahí ta uploadeado"
-
-		@backupTool.on "deleting", (file) ->
-			console.log "deleteando", file.path
-		@backupTool.on "deleted", -> console.log "ahí ta deleteado"
 
 	_doYouAccept: =>
 		new Promise (resolve, reject) =>
