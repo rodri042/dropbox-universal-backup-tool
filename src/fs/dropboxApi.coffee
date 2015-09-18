@@ -30,6 +30,9 @@ class DropboxApi extends EventEmitter
 		content = fs.readFileSync localPath
 		@client.writeFileAsync remotePath, content
 
+	deleteFile: (path) =>
+		@client.deleteAsync path
+
 	getAccountInfo: =>
 		@client.getAccountInfoAsync()
 			.spread (user) => user
@@ -37,7 +40,5 @@ class DropboxApi extends EventEmitter
 
 	_makeStats: (path, stats) =>
 		_.assign _.pick(
-			stats
-			"path", "name"
-			"size", "clientModifiedAt"
+			stats, "path", "name", "size"
 		), path: stats.path.replace path, ""

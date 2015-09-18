@@ -1,4 +1,5 @@
 Cli = require("./cli")
+PrettyError = require("pretty-error")
 isPromise = require("is-promise")
 _ = require("lodash")
 require("colors")
@@ -44,12 +45,15 @@ config.checkParams = (params...) ->
 
 # ------------------------------
 
+# handle errors more pretty
+if not config.options.debug
+	new PrettyError().start()
+	Error.stackTraceLimit = 3
+
 # run the first or the default action
 for option of actions
 	if config.options[option]?
-		value = actions[option]()
-		if isPromise(value) and not config.options.debug
-			value.catch (e) =>
-				console.log (e.message || e).red
+		actions[option]()
 		return
+
 actions.help()

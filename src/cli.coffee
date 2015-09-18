@@ -1,6 +1,5 @@
 BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
-moment = require("moment")
 prompt = require("readline")
 _ = require("lodash")
 require("colors")
@@ -9,7 +8,7 @@ module.exports =
 
 class Cli
 	constructor: (@options) ->
-		@backupTool = new BackupTool(@options.token)
+		@backupTool = new BackupTool(@options)
 		@backupTool.on "still-reading", =>
 			console.log "Still reading local files...".cyan
 
@@ -40,20 +39,16 @@ class Cli
 		console.log(comparision.newFiles
 			.map (it) =>
 				"  " + it.path.green + "\t" +
-				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+				"(#{filesize it.size})".white
 			.join "\n"
 		)
 
 		console.log "\nModified files:".white.bold.underline
 
 		console.log(comparision.modifiedFiles
-			.map ([local, remote, hasDiffs]) =>
+			.map ([local, remote]) =>
 				path = "  " + local.path.yellow
-				if hasDiffs.size
-					path += "\t" + "(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white
-				if hasDiffs.date
-					path += "\t" + "@ ".white + "#{moment(remote.clientModifiedAt).format('YYYY-MM-DD')}".red + " -> ".gray + "#{moment(local.clientModifiedAt).format('YYYY-MM-DD')}".green
+				path += "\t" + "(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white
 			.join "\n"
 		)
 
@@ -62,8 +57,7 @@ class Cli
 		console.log(comparision.deletedFiles
 			.map (it) =>
 				"  " + it.path.red + "\t" +
-				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.clientModifiedAt).format('YYYY-MM-DD')}".gray
+				"(#{filesize it.size})".white
 			.join "\n"
 		)
 
@@ -74,29 +68,32 @@ class Cli
 		console.log "  #{comparision.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
 		console.log "  #{comparision.deletedFiles.length} to delete.".white
 
+		totalChanges = comparision.newFiles.length + comparision.modifiedFiles.length + comparision.deletedFiles.length
+		if totalChanges is 0 then return
+
 		@_doYouAccept()
 			.then => @_sync comparision
 			.catch => process.exit 0
 
 	_sync: (comparision) =>
-		console.log "Syncing files...".white
-		fullPaths = _.pick @options, "to", "from"
-		@backupTool.sync _.assign(comparision, fullPaths)
+		console.log "\nSyncing files...".cyan.bold
+		@backupTool.sync comparision
 
 		@backupTool.on "uploading", (file) ->
-			console.log file.path
-		@backupTool.on "uploaded", -> console.log "ahí ta"
-		# suscribirse a los eventos "uploading", "uploaded", "not-uploaded"
+			console.log "uploadeando", file.path
+		@backupTool.on "uploaded", -> console.log "ahí ta uploadeado"
+
+		@backupTool.on "deleting", (file) ->
+			console.log "deleteando", file.path
+		@backupTool.on "deleted", -> console.log "ahí ta deleteado"
 
 	_doYouAccept: =>
 		new Promise (resolve, reject) =>
+			if @options.yes then return resolve()
+
 			readLine = prompt.createInterface
 				input: process.stdin
 				output: process.stdout
-
-			if @options.yes
-				readLine.close()
-				return resolve()
 
 			ask = =>
 				readLine.question "\nDo you accept? (y/n) ".cyan, (ans) =>

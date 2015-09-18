@@ -24,4 +24,3 @@ class FsWalker
 		path: "#{root.replace path, ""}/#{stats.name}"
 		name: stats.name
 		size: stats.size
-		clientModifiedAt: stats.mtime

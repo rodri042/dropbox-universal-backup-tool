@@ -9,7 +9,7 @@ _ = require("lodash")
 module.exports =
 
 class BackupTool extends EventEmitter
-	constructor: (token) ->
+	constructor: ({ token, @from, @to }) ->
 		@dropboxApi = new DropboxApi(token)
 		@dropboxApi.on "reading", (e) => @emit "reading", e
 
@@ -25,18 +25,34 @@ class BackupTool extends EventEmitter
 			dirComparer.compare local, remote
 
 	sync: (comparision) =>
-		uploads = comparision.newFiles.map (newFile) =>
-			=> @_uploadFile newFile, comparision
+		getActions = (group, action) =>
+			comparision[group].map (file) =>
+				=> action file
 
-		asyncPipeline uploads
+		uploads = getActions "newFiles", @_uploadFile
+		modifications = getActions "modifiedFiles", @_reuploadFile
+		deletions = getActions "deletedFiles", @_deleteFile
+
+		asyncPipeline(uploads).then =>
+			asyncPipeline(modifications).then =>
+				asyncPipeline deletions
 
 	getInfo: => @dropboxApi.getAccountInfo()
 
-	_uploadFile: (newFile, comparision) =>
-		@emit "uploading", newFile
-		localPath = comparision.from + newFile.path
-		remotePath = comparision.to + newFile.path
+	_uploadFile: (file) =>
+		@emit "uploading", file
+		localPath = @from + file.path
+		remotePath = @to + file.path
 
 		@dropboxApi.uploadFile(localPath, remotePath)
-			.then => @emit "uploaded", newFile
-			.catch (e) => @emit "not-uploaded", newFile
+			.then => @emit "uploaded", file
+			.catch => @emit "not-uploaded", file
+
+	_deleteFile: (file) =>
+		@emit "deleting", file
+		@dropboxApi.deleteFile @to + file.path
+			.then => @emit "deleted", file
+			.catch (e) => @emit "not-deleted", file
+
+	_reuploadFile: ([local]) =>
+		@_uploadFile local

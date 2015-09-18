@@ -10,14 +10,8 @@ class DirComparer
 			_(local)
 				.concat(remote)
 				.groupBy "path"
-				.filter ([l, r]) => l? and r?
-				.map ([l, r]) =>
-					[l, r].concat [
-						size: (l.size isnt r.size)
-						date: JSON.stringify(l.clientModifiedAt) isnt JSON.stringify(r.clientModifiedAt)
-					]
-				.filter ([l, r, hasDiffs]) =>
-					hasDiffs.size or hasDiffs.date
+				.filter ([l, r]) =>
+					(l? and r?) and (l.size isnt r.size)
 				.value()
 
 	_missingItems: (one, another) =>
