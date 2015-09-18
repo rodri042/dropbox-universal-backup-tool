@@ -35,4 +35,4 @@ class DirComparer
 
 	_missingItems: (one, another) =>
 		one.filter (o) =>
-			not _.find another, (a) => o.path is a.path
+			not _.find another, (a) => o.path.toLowerCase() is a.path.toLowerCase()

@@ -11,6 +11,7 @@ class DropboxApi extends EventEmitter
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 
 	readDir: (path, tail = { changes: [] }) =>
+		path = path.toLowerCase()
 		@client.deltaAsync(tail.cursorTag, pathPrefix: path)
 			.catch (e) => throw "Error reading the remote directory #{path}."
 			.then (delta) =>
