@@ -43,15 +43,15 @@ class BackupTool extends EventEmitter
 
 	_uploadFile: (file) =>
 		@emit "uploading", file
-		localPath = @from + file.path
-		remotePath = @to + file.path
 
-		@dropboxApi.uploadFile(localPath, remotePath)
+		localFile = _.assign _.clone(file),	path: @from + file.path
+		@dropboxApi.uploadFile(localFile, @to + file.path)
 			.then => @emit "uploaded", file
 			.catch (e) => @emit "not-uploaded", e
 
 	_deleteFile: (file) =>
 		@emit "deleting", file
+
 		@dropboxApi.deleteFile @to + file.path
 			.then => @emit "deleted", file
 			.catch (e) => @emit "not-deleted", e
@@ -61,6 +61,7 @@ class BackupTool extends EventEmitter
 
 	_moveFile: (file) =>
 		@emit "moving", file
+
 		@dropboxApi.moveFile(@to + file.oldPath, @to + file.newPath)
 			.then => @emit "moved", file
 			.catch (e) => @emit "not-moved", e

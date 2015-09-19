@@ -27,9 +27,26 @@ class DropboxApi extends EventEmitter
 						.map (stats) => @_makeStats path, stats
 						.value()
 
-	uploadFile: (localPath, remotePath) =>
-		content = fs.readFileSync localPath
-		@client.writeFileAsync remotePath, content
+	uploadFile: (localFile, remotePath) =>
+		new Promise (resolve, reject) ->
+			stream = fs.createReadStream localFile.path
+
+			cursor = null
+			bytesUploaded = 0
+
+			stream.on "data", (chunk) =>
+				bytesUploaded += chunk.length
+				console.log "Subí #{bytesUploaded} bytes..."
+
+				uploadChunk = (err, updatedCursor) =>
+					# chequear err y reintentar con el cursor
+					cursor = updatedCursor
+
+					@resumableUploadStepAsync chunk, cursor
+
+			stream.on "end", =>
+				@resumableUploadFinish remotePath, cursor, (err, data) =>
+					console.log "ahí ta viteh", data
 
 	deleteFile: (path) =>
 		@client.deleteAsync path
