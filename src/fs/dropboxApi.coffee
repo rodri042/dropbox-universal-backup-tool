@@ -28,25 +28,43 @@ class DropboxApi extends EventEmitter
 						.value()
 
 	uploadFile: (localFile, remotePath) =>
-		new Promise (resolve, reject) ->
+		new Promise (resolve, reject) =>
 			stream = fs.createReadStream localFile.path
 
 			cursor = null
+			chunk = null
 			bytesUploaded = 0
 
-			stream.on "data", (chunk) =>
-				bytesUploaded += chunk.length
-				console.log "Subí #{bytesUploaded} bytes..."
+			uploadChunk = (err, updatedCursor) =>
+				cursor = updatedCursor
 
-				uploadChunk = (err, updatedCursor) =>
-					# chequear err y reintentar con el cursor
-					cursor = updatedCursor
+				waitForData = =>
+					console.log "ahí esperé"
+					stream.removeListener "readable", arguments.callee
 
-					@resumableUploadStepAsync chunk, cursor
+					console.log "jeje"
+					if not err?
+						chunk = stream.read()
+					else
+						console.log "HUBO UN ERROR, vuelvo a intentar"
 
-			stream.on "end", =>
-				@resumableUploadFinish remotePath, cursor, (err, data) =>
-					console.log "ahí ta viteh", data
+					if chunk?
+						@client.resumableUploadStep chunk, cursor, (err, data) =>
+							bytesUploaded += chunk.length
+							console.log "Subí #{bytesUploaded} bytes..."
+							console.log "más bytes, sigo"
+							uploadChunk err, data
+					else
+						@client.resumableUploadFinish remotePath, cursor, (err, data) =>
+							console.log "ahí ta viteh"
+							resolve()
+
+				console.log "vamo a esperar por datos"
+				stream.on "readable", waitForData
+				console.log "no pasa nada :("
+				console.log stream
+
+			uploadChunk null
 
 	deleteFile: (path) =>
 		@client.deleteAsync path
