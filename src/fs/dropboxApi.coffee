@@ -8,6 +8,7 @@ module.exports =
 
 class DropboxApi extends EventEmitter
 	constructor: (token) ->
+		@BUFFER_SIZE = 10 * 1024 * 1024
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 
 	readDir: (path, tail = { changes: [] }) =>
@@ -29,20 +30,20 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		new Promise (resolve, reject) =>
-			stream = fs.createReadStream localFile.path
+			stream = fs.createReadStream localFile.path, bufferSize: @BUFFER_SIZE
 
 			cursor = null
 			chunk = null
+			ready = Promise.pending()
+			canRead = => ready.resolve()
 			bytesUploaded = 0
 
 			uploadChunk = (err, updatedCursor) =>
 				cursor = updatedCursor
 
-				waitForData = =>
-					console.log "ahí esperé"
-					stream.removeListener "readable", arguments.callee
+				ready.promise.then =>
+					ready = Promise.pending()
 
-					console.log "jeje"
 					if not err?
 						chunk = stream.read()
 					else
@@ -52,19 +53,18 @@ class DropboxApi extends EventEmitter
 						@client.resumableUploadStep chunk, cursor, (err, data) =>
 							bytesUploaded += chunk.length
 							console.log "Subí #{bytesUploaded} bytes..."
-							console.log "más bytes, sigo"
 							uploadChunk err, data
 					else
 						@client.resumableUploadFinish remotePath, cursor, (err, data) =>
+							stream.removeAllListeners "readable"
+							stream.removeAllListeners "end"
+							if err then throw err
 							console.log "ahí ta viteh"
 							resolve()
 
-				console.log "vamo a esperar por datos"
-				stream.on "readable", waitForData
-				console.log "no pasa nada :("
-				console.log stream
-
-			uploadChunk null
+			stream.on "readable", canRead
+			stream.on "end", canRead
+			uploadChunk()
 
 	deleteFile: (path) =>
 		@client.deleteAsync path
