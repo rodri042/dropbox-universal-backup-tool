@@ -33,7 +33,10 @@ class DropboxApi extends EventEmitter
 	uploadFile: (localFile, remotePath) =>
 		new Promise (resolve, reject) =>
 
-			fs.openAsync(localFile.path, "r").then (fd) =>
+			fs.openAsync(localFile.path, "r")
+			.catch => reject "Unable to open the file"
+			.then (fd) =>
+				if not fd? then return reject()
 
 				uploadChunk = (cursor, chunk, retry = false) =>
 					if not retry

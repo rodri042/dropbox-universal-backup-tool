@@ -11,7 +11,7 @@ class Cli
 	constructor: (@options) ->
 		@backupTool = new BackupTool(@options)
 		onError = (e) ->
-			console.log "^ it didn't work".red
+			console.log " ^ it didn't work".red
 			console.log "#{e}".red
 
 		@backupTool
