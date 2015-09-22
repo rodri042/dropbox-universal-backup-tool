@@ -32,7 +32,7 @@ options = require("node-getopt").create [
 	["f", "from=PATH", "Local source path."]
 	["t", "to=DROPBOX_PATH", "Dropbox destination path."]
 	["k", "token=TOKEN", "Dropbox token."]
-	["i", "ignore=ARRAY", "List of regular expressions to ignore"]
+	["i", "ignore=ARRAY", "List of regular expressions to ignore."]
 	["y", "yes", "Don't review changes before the sync."]
 	["m", "me", "Show the user's Dropbox information."]
 	["d", "debug", "Show detailed traces for debugging."]
