@@ -1,6 +1,7 @@
 BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
 prompt = require("readline")
+ProgressBar = require("progress")
 _ = require("lodash")
 require("colors")
 
@@ -16,11 +17,20 @@ class Cli
 		@backupTool
 			.on "still-reading", =>
 				console.log "Still reading local files...".cyan
-			.on "uploading", (file) ->
-				console.log "Uploading ".white + file.path.yellow + "...".white
-			.on "deleting", (file) ->
+			.on "uploading", (file) =>
+				console.log "Uploading ".white + file.path.yellow + " (#{filesize file.size})...".white
+				@progress = new ProgressBar "[:bar] [:percent] :etas",
+					complete: '\u001b[42m \u001b[0m'
+					incomplete: '\u001b[41m \u001b[0m'
+					total: file.size
+			.on "progress", (delta) =>
+				@progress?.tick delta
+			.on "uploaded", =>
+				@progress?.terminate()
+				@progress = null
+			.on "deleting", (file) =>
 				console.log "Deleting ".white + file.path.yellow + "...".white
-			.on "moving", (file) ->
+			.on "moving", (file) =>
 				console.log "Moving ".white + file.oldPath.yellow + " to ".white + file.newPath.yellow + "...".white
 			.on "not-uploaded", onError
 			.on "not-deleted", onError
@@ -96,8 +106,8 @@ class Cli
 		if totalChanges is 0 then return
 
 		@_doYouAccept()
-			.then => @_sync comparision
 			.catch => process.exit 0
+			.then => @_sync comparision
 
 	_sync: (comparision) =>
 		console.log "\nSyncing files...\n".cyan.bold

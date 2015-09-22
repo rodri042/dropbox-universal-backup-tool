@@ -12,6 +12,7 @@ class BackupTool extends EventEmitter
 	constructor: ({ token, @from, @to }) ->
 		@dropboxApi = new DropboxApi(token)
 		@dropboxApi.on "reading", (e) => @emit "reading", e
+		@dropboxApi.on "progress", (e) => @emit "progress", e
 
 	getFilesAndCompare: (from, to) =>
 		promises =

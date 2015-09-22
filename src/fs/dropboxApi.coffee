@@ -1,14 +1,15 @@
+FileStream = require("./fileStream")
 Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 { EventEmitter } = require("events")
-fs = require("fs")
 _ = require("lodash")
 
 module.exports =
 
 class DropboxApi extends EventEmitter
 	constructor: (token) ->
-		@BUFFER_SIZE = 10 * 1024 * 1024
+		@TIMEOUT = 120000
+
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 
 	readDir: (path, tail = { changes: [] }) =>
@@ -30,40 +31,26 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		new Promise (resolve, reject) =>
-			stream = fs.createReadStream localFile.path, bufferSize: @BUFFER_SIZE
+			stream = new FileStream(localFile.path)
 
-			cursor = null
-			chunk = null
-			ready = Promise.pending()
-			canRead = => ready.resolve()
-			bytesUploaded = 0
-
-			uploadChunk = (err, updatedCursor) =>
-				cursor = updatedCursor
-
-				ready.promise.then =>
-					ready = Promise.pending()
-
-					if not err?
+			uploadChunk = (cursor, chunk, retry = false) =>
+				stream.whenReady =>
+					if not retry
 						chunk = stream.read()
-					else
-						console.log "HUBO UN ERROR, vuelvo a intentar"
 
 					if chunk?
-						@client.resumableUploadStep chunk, cursor, (err, data) =>
-							bytesUploaded += chunk.length
-							console.log "Subí #{bytesUploaded} bytes..."
-							uploadChunk err, data
+						@client.resumableUploadStepAsync(chunk, cursor)
+							.timeout @TIMEOUT
+							.catch (err) =>
+								uploadChunk cursor, chunk, true
+							.then (updatedCursor) =>
+								@emit "progress", chunk.length
+								uploadChunk updatedCursor, chunk
 					else
 						@client.resumableUploadFinish remotePath, cursor, (err, data) =>
-							stream.removeAllListeners "readable"
-							stream.removeAllListeners "end"
 							if err then throw err
-							console.log "ahí ta viteh"
 							resolve()
 
-			stream.on "readable", canRead
-			stream.on "end", canRead
 			uploadChunk()
 
 	deleteFile: (path) =>
