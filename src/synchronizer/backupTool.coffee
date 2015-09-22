@@ -14,9 +14,9 @@ class BackupTool extends EventEmitter
 		@dropboxApi.on "reading", (e) => @emit "reading", e
 		@dropboxApi.on "progress", (e) => @emit "progress", e
 
-	getFilesAndCompare: (from, to) =>
+	getFilesAndCompare: (from, to, ignore = []) =>
 		promises =
-			local: fsWalker.walk from
+			local: fsWalker.walk from, ignore
 			remote: @dropboxApi.readDir to
 
 		promises.remote.then =>

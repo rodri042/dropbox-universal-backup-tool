@@ -8,7 +8,19 @@ actions =
 	"me": ->
 		new Cli(config.checkParams "token").showInfo()
 	"from": ->
-		new Cli(config.checkParams("to", "token")).getFilesAndSync()
+		opts = config.checkParams("to", "token")
+
+		ignore = try JSON.parse opts.ignore
+		if ignore?
+			if not _.isArray ignore
+				console.log "option ignore should be an array"
+				process.exit 1
+			else
+				opts.ignore = ignore
+		else
+			delete opts.ignore
+
+		new Cli(opts).getFilesAndSync()
 	"version": ->
 		console.log "1.0.0"
 	"help": ->
@@ -20,6 +32,7 @@ options = require("node-getopt").create [
 	["f", "from=PATH", "Local source path."]
 	["t", "to=DROPBOX_PATH", "Dropbox destination path."]
 	["k", "token=TOKEN", "Dropbox token."]
+	["i", "ignore=ARRAY", "List of regular expressions to ignore"]
 	["y", "yes", "Don't review changes before the sync."]
 	["m", "me", "Show the user's Dropbox information."]
 	["d", "debug", "Show detailed traces for debugging."]
@@ -29,7 +42,7 @@ options = require("node-getopt").create [
 
 options.setHelp(
 	"Usages:\n".cyan +
-	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--yes]\n".cyan +
+	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [ignore='[\"^node_modules$\"]'] [--yes]\n".cyan +
 	"./dxubt.js --me --token=blah\n".cyan +
 	"\n" +
 	"[[OPTIONS]]".white
@@ -39,7 +52,7 @@ config = options.parseSystem()
 config.checkParams = (params...) ->
 	params.forEach (property) ->
 		if not config.options[property]?
-			console.log "Missing param '#{property}'.".red
+			console.log "missing option #{property}"
 			process.exit 1
 	config.options
 

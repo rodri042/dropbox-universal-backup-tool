@@ -5,7 +5,7 @@ fs = Promise.promisifyAll require("fs")
 module.exports = new
 
 class FsWalker
-	walk: (path) =>
+	walk: (path, ignore = []) =>
 		fs.statAsync(path)
 			.catch => throw "Error reading the local directory #{path}."
 			.then =>
@@ -14,7 +14,13 @@ class FsWalker
 					walker = walk.walk path, followLinks: true
 
 					walker.on "file", (root, stats, next) =>
-						files.push @_makeStats(path, root, stats)
+						stats = @_makeStats path, root, stats
+
+						ignored = ignore.some (exp) =>
+							new RegExp(exp, "i").test stats.path
+
+						if not ignored then files.push stats
+
 						next()
 
 					walker.on "end", =>

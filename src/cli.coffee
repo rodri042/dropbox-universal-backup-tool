@@ -42,7 +42,7 @@ class Cli
 			@backupTool.on "reading", onRead
 
 			@backupTool
-				.getFilesAndCompare @options.from, @options.to
+				.getFilesAndCompare @options.from, @options.to, @options.ignore
 				.then @_askForSync
 				.finally =>
 					@backupTool.removeListener "reading", onRead
