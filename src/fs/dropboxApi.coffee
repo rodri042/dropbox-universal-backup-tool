@@ -1,14 +1,15 @@
-FileStream = require("./fileStream")
 Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 { EventEmitter } = require("events")
+fs = Promise.promisifyAll require("fs")
 _ = require("lodash")
 
 module.exports =
 
 class DropboxApi extends EventEmitter
 	constructor: (token) ->
-		@TIMEOUT = 120000
+		@BUFFER_SIZE = 1 * 1024 * 1024
+		@TIMEOUT = 60000
 
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 
@@ -31,12 +32,19 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		new Promise (resolve, reject) =>
-			stream = new FileStream(localFile.path)
 
-			uploadChunk = (cursor, chunk, retry = false) =>
-				stream.whenReady =>
+			fs.openAsync(localFile.path, "r").then (fd) =>
+
+				uploadChunk = (cursor, chunk, retry = false) =>
 					if not retry
-						chunk = stream.read()
+						bytesUploaded = cursor?.offset || 0
+
+						if bytesUploaded < localFile.size
+							chunkSize = Math.min @BUFFER_SIZE, localFile.size
+							chunk = new Buffer(chunkSize)
+							fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
+						else
+							chunk = null
 
 					if chunk?
 						@client.resumableUploadStepAsync(chunk, cursor)
@@ -51,7 +59,7 @@ class DropboxApi extends EventEmitter
 							if err then throw err
 							resolve()
 
-			uploadChunk()
+				uploadChunk()
 
 	deleteFile: (path) =>
 		@client.deleteAsync path

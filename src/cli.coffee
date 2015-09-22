@@ -23,6 +23,7 @@ class Cli
 					complete: '\u001b[42m \u001b[0m'
 					incomplete: '\u001b[41m \u001b[0m'
 					total: file.size
+				@progress.tick 0
 			.on "progress", (delta) =>
 				@progress?.tick delta
 			.on "uploaded", =>
