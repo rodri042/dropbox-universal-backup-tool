@@ -44,7 +44,7 @@ class DropboxApi extends EventEmitter
 					bytesUploaded = cursor?.offset || 0
 
 					if bytesUploaded < localFile.size
-						chunkSize = Math.min @BUFFER_SIZE, localFile.size
+						chunkSize = Math.min @BUFFER_SIZE, (localFile.size - bytesUploaded)
 						chunk = new Buffer(chunkSize)
 						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
 					else
