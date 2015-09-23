@@ -56,7 +56,7 @@ class DropboxApi extends EventEmitter
 						.catch (err) =>
 							uploadChunk cursor, true
 						.then (updatedCursor) =>
-							@emit "progress", chunk.length
+							@emit "progress", chunk.length if chunk?
 							uploadChunk updatedCursor
 				else
 					@client.resumableUploadFinish remotePath, cursor, (err, data) =>
