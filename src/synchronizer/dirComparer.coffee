@@ -32,7 +32,6 @@ class DirComparer
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
 
-
 	_missingItems: (one, another) =>
 		one.filter (o) =>
 			not _.find another, (a) => o.path.toLowerCase() is a.path.toLowerCase()
