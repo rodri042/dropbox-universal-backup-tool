@@ -31,38 +31,40 @@ class DropboxApi extends EventEmitter
 						.value()
 
 	uploadFile: (localFile, remotePath) =>
+		if localFile.size is 0
+			return @client.writeFileAsync remotePath, new Buffer(0)
+
 		new Promise (resolve, reject) =>
+			fd = fs.openSync localFile.path, "r"
+			if not fd? then return reject "Unable to open the file"
 
-			fs.openAsync(localFile.path, "r")
-			.catch => reject "Unable to open the file"
-			.then (fd) =>
-				if not fd? then return reject()
+			chunk = null
+			uploadChunk = (cursor, retry = false) =>
+				if not retry
+					bytesUploaded = cursor?.offset || 0
 
-				uploadChunk = (cursor, chunk, retry = false) =>
-					if not retry
-						bytesUploaded = cursor?.offset || 0
-
-						if bytesUploaded < localFile.size
-							chunkSize = Math.min @BUFFER_SIZE, localFile.size
-							chunk = new Buffer(chunkSize)
-							fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
-						else
-							chunk = null
-
-					if chunk?
-						@client.resumableUploadStepAsync(chunk, cursor)
-							.timeout @TIMEOUT
-							.catch (err) =>
-								uploadChunk cursor, chunk, true
-							.then (updatedCursor) =>
-								@emit "progress", chunk.length
-								uploadChunk updatedCursor, chunk
+					if bytesUploaded < localFile.size
+						chunkSize = Math.min @BUFFER_SIZE, localFile.size
+						chunk = new Buffer(chunkSize)
+						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
 					else
-						@client.resumableUploadFinish remotePath, cursor, (err, data) =>
-							if err then throw err
-							resolve()
+						chunk = null
 
-				uploadChunk()
+				if chunk?
+					@client.resumableUploadStepAsync(chunk, cursor)
+						.timeout @TIMEOUT
+						.catch (err) =>
+							uploadChunk cursor, true
+						.then (updatedCursor) =>
+							@emit "progress", chunk.length
+							uploadChunk updatedCursor
+				else
+					@client.resumableUploadFinish remotePath, cursor, (err, data) =>
+						fs.closeSync fd
+						if err then throw err
+						resolve()
+
+			uploadChunk()
 
 	deleteFile: (path) =>
 		@client.deleteAsync path
