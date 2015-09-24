@@ -39,24 +39,22 @@ class DropboxApi extends EventEmitter
 			if not fd? then return reject "Unable to open the file"
 
 			chunk = new Buffer @BUFFER_SIZE
-			uploadChunk = (cursor, retry = false) =>
-				if not retry
-					bytesUploaded = cursor?.offset || 0
+			uploadChunk = (cursor, isRetry = false) =>
+				bytesUploaded = cursor?.offset || 0
+				hasPendingBytes = bytesUploaded < localFile.size
 
-					if bytesUploaded < localFile.size
+				if hasPendingBytes
+					if not isRetry
 						chunkSize = Math.min @BUFFER_SIZE, (localFile.size - bytesUploaded)
 						chunk = chunk.slice 0, chunkSize
 						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
-					else
-						chunk = null
 
-				if chunk?
 					@client.resumableUploadStepAsync(chunk, cursor)
 						.timeout @TIMEOUT
 						.catch (err) =>
 							uploadChunk cursor, true
 						.then (updatedCursor) =>
-							@emit "progress", chunk.length if chunk?
+							@emit "progress", chunk.length
 							uploadChunk updatedCursor
 				else
 					@client.resumableUploadFinish remotePath, cursor, (err, data) =>
