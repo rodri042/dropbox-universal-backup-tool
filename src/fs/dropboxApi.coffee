@@ -38,14 +38,14 @@ class DropboxApi extends EventEmitter
 			fd = fs.openSync localFile.path, "r"
 			if not fd? then return reject "Unable to open the file"
 
-			chunk = null
+			chunk = new Buffer @BUFFER_SIZE
 			uploadChunk = (cursor, retry = false) =>
 				if not retry
 					bytesUploaded = cursor?.offset || 0
 
 					if bytesUploaded < localFile.size
 						chunkSize = Math.min @BUFFER_SIZE, (localFile.size - bytesUploaded)
-						chunk = new Buffer(chunkSize)
+						chunk = chunk.slice 0, chunkSize
 						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
 					else
 						chunk = null
