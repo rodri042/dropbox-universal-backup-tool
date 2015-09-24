@@ -9,7 +9,7 @@ module.exports =
 class DropboxApi extends EventEmitter
 	constructor: (token) ->
 		@BUFFER_SIZE = 1 * 1024 * 1024
-		@TIMEOUT = 60000
+		@TIMEOUT = 120000
 
 		@client = Promise.promisifyAll new Dropbox.Client { token }
 
@@ -38,14 +38,15 @@ class DropboxApi extends EventEmitter
 			fd = fs.openSync localFile.path, "r"
 			if not fd? then return reject "Unable to open the file"
 
-			chunk = new Buffer @BUFFER_SIZE
+			chunk = new Buffer(@BUFFER_SIZE)
 			uploadChunk = (cursor, isRetry = false) =>
 				bytesUploaded = cursor?.offset || 0
-				hasPendingBytes = bytesUploaded < localFile.size
+				pendingBytes = localFile.size - bytesUploaded
+				hasPendingBytes = pendingBytes > 0
 
 				if hasPendingBytes
 					if not isRetry
-						chunkSize = Math.min @BUFFER_SIZE, (localFile.size - bytesUploaded)
+						chunkSize = Math.min @BUFFER_SIZE, pendingBytes
 						chunk = chunk.slice 0, chunkSize
 						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
 
