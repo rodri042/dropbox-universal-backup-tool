@@ -48,7 +48,7 @@ class DropboxApi extends EventEmitter
 					if not isRetry
 						chunkSize = Math.min @BUFFER_SIZE, pendingBytes
 						chunk = chunk.slice 0, chunkSize
-						fs.readSync fd, chunk, 0, chunkSize, bytesUploaded
+						fs.readSync fd, chunk, 0, chunkSize
 
 					@client.resumableUploadStepAsync(chunk, cursor)
 						.timeout @TIMEOUT
