@@ -1,6 +1,7 @@
 Promise = require("bluebird")
 { EventEmitter } = require("events")
 fs = require("fs")
+_ = require("lodash")
 
 module.exports =
 
@@ -38,7 +39,8 @@ class DropboxResumableUpload extends EventEmitter
 			return @client.resumableUploadStepAsync(@chunk, @cursor)
 				.timeout @TIMEOUT
 				.catch => @emit "chunk-error"
-				.then (@cursor) =>
+				.then (cursor) =>
+					if _.isObject cursor then @cursor = cursor
 					@uploadedBytes += @chunk.length
 					@emit "chunk-ok", @chunk.length
 
