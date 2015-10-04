@@ -37,7 +37,7 @@ class DropboxApi extends EventEmitter
 				@emit "progress", progress
 
 	deleteFile: (path) =>
-		@client.deleteAsync path BORRAR
+		@client.deleteAsync path
 
 	moveFile: (oldPath, newPath) =>
 		@client.moveAsync oldPath, newPath
