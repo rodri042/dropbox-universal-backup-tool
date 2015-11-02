@@ -13,7 +13,7 @@ actions =
 		ignore = try JSON.parse opts.ignore
 		if ignore?
 			if not _.isArray ignore
-				console.log "option ignore should be an array"
+				console.log "option --ignore should be an array"
 				process.exit 1
 			else
 				opts.ignore = ignore
