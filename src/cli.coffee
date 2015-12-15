@@ -53,10 +53,9 @@ class Cli
 		@backupTool.getInfo().then (user) =>
 			console.log(
 				"User information:\n\n".white.bold.underline +
-				"User ID: ".white.bold + "#{user.uid}\n".white +
-				"Name: ".white.bold + "#{user.name}\n".white +
-				"Email: ".white.bold + "#{user.email}\n".white +
-				"Quota: ".white.bold + "#{filesize(user.usedQuota)} / #{filesize(user.quota)}".white
+				"User ID: ".white.bold + "#{user.account_id}\n".white +
+				"Name: ".white.bold + "#{user.name.display_name}\n".white +
+				"Email: ".white.bold + "#{user.email}".white
 			)
 
 	_askForSync: (comparision) =>

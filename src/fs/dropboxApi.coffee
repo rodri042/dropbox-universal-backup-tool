@@ -3,13 +3,15 @@ Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 { EventEmitter } = require("events")
 fs = Promise.promisifyAll require("fs")
+request = Promise.promisifyAll require("request")
 _ = require("lodash")
 
 module.exports =
 
 class DropboxApi extends EventEmitter
-	constructor: (token) ->
-		@client = Promise.promisifyAll new Dropbox.Client { token }
+	constructor: (@token) ->
+		@client = Promise.promisifyAll new Dropbox.Client { @token }
+		@URL = "https://api.dropboxapi.com/2/"
 
 	readDir: (path, tail = { changes: [] }) =>
 		path = path.toLowerCase()
@@ -43,11 +45,19 @@ class DropboxApi extends EventEmitter
 		@client.moveAsync oldPath, newPath
 
 	getAccountInfo: =>
-		@client.getAccountInfoAsync()
-			.spread (user) => user
+		@_doRequest "users/get_current_account"
 			.catch => throw "Error retrieving the user info."
 
 	_makeStats: (path, stats) =>
 		_.assign _.pick(
 			stats, "path", "name", "size"
 		), path: stats.path.replace path, ""
+
+	_doRequest: (url, body) =>
+		options =
+			auth: bearer: @token
+			url: "#{@URL}/#{url}"
+			body: body
+			json: true
+
+		request.postAsync(options).spread ({ body }) -> body
