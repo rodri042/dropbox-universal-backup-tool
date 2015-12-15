@@ -60,4 +60,7 @@ class DropboxApi extends EventEmitter
 			body: body
 			json: true
 
-		request.postAsync(options).spread ({ body }) -> body
+		request.postAsync(options).spread ({ statusCode, body }) =>
+			success = /2../.test statusCode
+			if not success then throw body
+			body
