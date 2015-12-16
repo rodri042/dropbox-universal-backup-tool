@@ -1,5 +1,6 @@
 BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
+moment = require("moment")
 prompt = require("readline")
 ProgressBar = require("progress")
 _ = require("lodash")
@@ -39,33 +40,35 @@ class Cli
 			.on "not-moved", onError
 
 	getFilesAndSync: =>
-		@backupTool.getInfo().then ({ usedQuota }) =>
-			onRead = (size) => @_showReadingState size, usedQuota
-			@backupTool.on "reading", onRead
+		onRead = (count) => @_showReadingState count
+		@backupTool.on "reading", onRead
 
-			@backupTool
-				.getFilesAndCompare @options.from, @options.to, @options.ignore
-				.then @_askForSync
-				.finally =>
-					@backupTool.removeListener "reading", onRead
+		@backupTool
+			.getFilesAndCompare @options.from, @options.to, @options.ignore
+			.then @_askForSync
+			.finally =>
+				@backupTool.removeListener "reading", onRead
 
 	showInfo: =>
 		@backupTool.getInfo().then (user) =>
 			console.log(
 				"User information:\n\n".white.bold.underline +
-				"User ID: ".white.bold + "#{user.uid}\n".white +
-				"Name: ".white.bold + "#{user.name}\n".white +
-				"Email: ".white.bold + "#{user.email}\n".white +
-				"Quota: ".white.bold + "#{filesize(user.usedQuota)} / #{filesize(user.quota)}".white
+				"User ID: ".white.bold + "#{user.account_id}\n".white +
+				"Name: ".white.bold + "#{user.name.display_name}\n".white +
+				"Email: ".white.bold + "#{user.email}".white
 			)
 
 	_askForSync: (comparision) =>
-		console.log "\nNew files:".white.bold.underline
+		formatDate = (it) =>
+			moment(it.mtime).format "YYYY-MM-DD HH:mm:ss"
+
+		console.log "\n\nNew files:".white.bold.underline
 
 		console.log(comparision.newFiles
 			.map (it) =>
 				"  " + it.path.green + "\t" +
-				"(#{filesize it.size})".white
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{formatDate(it)}".white
 			.join "\n"
 		)
 
@@ -73,8 +76,9 @@ class Cli
 
 		console.log(comparision.modifiedFiles
 			.map ([local, remote]) =>
-				path = "  " + local.path.yellow
-				path += "\t" + "(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white
+				path = "  " + local.path.yellow + "\t" +
+					"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
+					"@ ".white + "#{formatDate(remote)}".red + " -> ".white + "#{formatDate(local)}".green
 			.join "\n"
 		)
 
@@ -83,7 +87,8 @@ class Cli
 		console.log(comparision.deletedFiles
 			.map (it) =>
 				"  " + it.path.red + "\t" +
-				"(#{filesize it.size})".white
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{formatDate(it)}".white
 			.join "\n"
 		)
 
@@ -132,8 +137,7 @@ class Cli
 					if ans is "y" then resolve() else reject()
 			ask()
 
-	_showReadingState: (size, total) =>
-		console.log(
-			"Reading remote files:".cyan
-			((size / total) * 100).toFixed(2).green + "%".cyan
+	_showReadingState: (count) =>
+		process.stdout.write(
+			"Reading remote files: #{count}\r".cyan, "utf8"
 		)

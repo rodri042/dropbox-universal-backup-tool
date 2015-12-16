@@ -21,6 +21,7 @@ class BackupTool extends EventEmitter
 
 		promises.remote.then =>
 			if not promises.local.isResolved() then @emit "still-reading"
+		.catch =>
 
 		Promise.props(promises).then ({ local, remote }) =>
 			dirComparer.compare local, remote
