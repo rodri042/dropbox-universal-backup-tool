@@ -27,7 +27,7 @@ class DirComparer
 				.concat(remote)
 				.groupBy "path"
 				.filter ([l, r]) =>
-					(l? and r?) and ((l.size isnt r.size) or (l.mtime.setMilliseconds(0) isnt r.mtime.setMilliseconds(0)))
+					(l? and r?) and (l.size isnt r.size or l.mtime isnt r.mtime)
 				.value()
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }

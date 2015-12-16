@@ -30,4 +30,4 @@ class FsWalker
 		path: "#{root.replace path, ""}/#{stats.name}"
 		name: stats.name
 		size: stats.size
-		mtime: stats.mtime
+		mtime: stats.mtime.setMilliseconds 0

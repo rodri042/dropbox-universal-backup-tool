@@ -51,10 +51,7 @@ class DropboxResumableUpload extends EventEmitter
 
 		@api.request("files/upload_session/finish", "", {
 			cursor: cursor
-			commit:
-				path: @remotePath
-				mode: "overwrite"
-				mute: false
+			commit: @api._makeSaveOptions @localFile, @remotePath
 		}).finally => @emit "complete"
 
 	_initialize: =>

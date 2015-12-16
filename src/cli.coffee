@@ -59,13 +59,16 @@ class Cli
 			)
 
 	_askForSync: (comparision) =>
-		console.log "\nNew files:".white.bold.underline
+		formatDate = (it) =>
+			moment(it.mtime).format "YYYY-MM-DD HH:mm:ss"
+
+		console.log "\n\nNew files:".white.bold.underline
 
 		console.log(comparision.newFiles
 			.map (it) =>
 				"  " + it.path.green + "\t" +
 				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".white
+				"@ #{formatDate(it)}".white
 			.join "\n"
 		)
 
@@ -75,7 +78,7 @@ class Cli
 			.map ([local, remote]) =>
 				path = "  " + local.path.yellow + "\t" +
 					"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
-					"@ ".white + "#{moment(remote.mtime).format('YYYY-MM-DD')}".red + " -> ".white + "#{moment(local.mtime).format('YYYY-MM-DD')}".green
+					"@ ".white + "#{formatDate(remote)}".red + " -> ".white + "#{formatDate(local)}".green
 			.join "\n"
 		)
 
@@ -85,7 +88,7 @@ class Cli
 			.map (it) =>
 				"  " + it.path.red + "\t" +
 				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".white
+				"@ #{formatDate(it)}".white
 			.join "\n"
 		)
 

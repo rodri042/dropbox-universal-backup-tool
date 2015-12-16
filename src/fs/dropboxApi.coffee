@@ -1,16 +1,15 @@
 DropboxResumableUpload = require("./dropboxResumableUpload")
-Dropbox = require("dropbox-fixed")
 Promise = require("bluebird")
 { EventEmitter } = require("events")
 fs = Promise.promisifyAll require("fs")
 request = Promise.promisifyAll require("request")
+moment = require("moment")
 _ = require("lodash")
 
 module.exports =
 
 class DropboxApi extends EventEmitter
 	constructor: (@token) ->
-		@client = Promise.promisifyAll new Dropbox.Client { @token }
 		@URL = "https://$type.dropboxapi.com/2"
 
 	readDir: (path, tail) =>
@@ -39,10 +38,7 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		if localFile.size is 0
-			@request "files/upload", "",
-				path: remotePath
-				mode: "overwrite"
-				mute: true
+			@request "files/upload", "", @_makeSaveOptions(localFile, remotePath)
 		else
 			new DropboxResumableUpload(localFile, remotePath, @)
 				.run (progress) =>
@@ -59,12 +55,6 @@ class DropboxApi extends EventEmitter
 	getAccountInfo: =>
 		@request "users/get_current_account"
 			.catch => throw "Error retrieving the user info."
-
-	_makeStats: (path, stats) =>
-		path: stats.path_lower.replace path, ""
-		name: stats.name
-		size: stats.size
-		mtime: new Date(stats.client_modified)
 
 	request: (url, body, header) =>
 		isBinary = header?
@@ -87,3 +77,15 @@ class DropboxApi extends EventEmitter
 			if not success
 				throw new Error(body.error_summary || body.error || body)
 			if isBinary then JSON.parse(body) else body
+
+	_makeStats: (path, stats) =>
+		path: stats.path_lower.replace path, ""
+		name: stats.name
+		size: stats.size
+		mtime: new Date(stats.client_modified).setMilliseconds 0
+
+	_makeSaveOptions: (localFile, remotePath) =>
+		path: remotePath
+		mode: "overwrite"
+		client_modified: moment(localFile.mtime).format("YYYY-MM-DDTHH:mm:ss") + "Z"
+		mute: true
