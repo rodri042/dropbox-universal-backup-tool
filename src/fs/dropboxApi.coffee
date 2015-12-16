@@ -39,15 +39,15 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		if localFile.size is 0
-			@_request "files/upload", new Buffer("holi"),
+			@_request "files/upload", "",
 				path: remotePath
 				mode: "overwrite"
 				mute: true
 		else
 			Promise.resolve()
-		#new DropboxResumableUpload(localFile, remotePath, @client)
-		#	.run (progress) =>
-		#		@emit "progress", progress
+		# new DropboxResumableUpload(localFile, remotePath, @_request)
+		# 	.run (progress) =>
+		# 		@emit "progress", progress
 
 	deleteFile: (path) =>
 		process.exit 8

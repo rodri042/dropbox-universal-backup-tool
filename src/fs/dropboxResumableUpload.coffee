@@ -6,7 +6,7 @@ _ = require("lodash")
 module.exports =
 
 class DropboxResumableUpload extends EventEmitter
-	constructor: (@localFile, @remotePath, @client) ->
+	constructor: (@localFile, @remotePath, @request) ->
 		@BUFFER_SIZE = 1 * 1024 * 1024
 		@TIMEOUT = 120000
 
