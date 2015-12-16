@@ -13,7 +13,7 @@ actions =
 		ignore = try JSON.parse opts.ignore
 		if ignore?
 			if not _.isArray ignore
-				console.log "option ignore should be an array"
+				console.log "option `ignore` should be an array"
 				process.exit 1
 			else
 				opts.ignore = ignore
@@ -32,10 +32,9 @@ options = require("node-getopt").create [
 	["f", "from=PATH", "Local source path."]
 	["t", "to=DROPBOX_PATH", "Dropbox destination path."]
 	["k", "token=TOKEN", "Dropbox token."]
-	["i", "ignore=ARRAY", "List of regular expressions to ignore."]
+	["i", "ignore=REGEXPS", "List of regular expressions to ignore."]
 	["y", "yes", "Don't review changes before the sync."]
 	["m", "me", "Show the user's Dropbox information."]
-	["d", "debug", "Show detailed traces for debugging."]
 	["v", "version", "Display the version."]
 	["h", "help", "Display this help."]
 ]
@@ -59,9 +58,8 @@ config.checkParams = (params...) ->
 # ------------------------------
 
 # handle errors more pretty
-if not config.options.debug
-	new PrettyError().start()
-	Error.stackTraceLimit = 3
+new PrettyError().start()
+Error.stackTraceLimit = 3
 
 # run the first or the default action
 for option of actions

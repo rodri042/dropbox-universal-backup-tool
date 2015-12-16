@@ -13,22 +13,32 @@ class DropboxApi extends EventEmitter
 		@client = Promise.promisifyAll new Dropbox.Client { @token }
 		@URL = "https://api.dropboxapi.com/2/"
 
-	readDir: (path, tail = { changes: [] }) =>
+	readDir: (path, tail) =>
 		path = path.toLowerCase()
-		@client.deltaAsync(tail.cursorTag, pathPrefix: path)
-			.catch (e) => throw "Error reading the remote directory #{path}."
-			.then (delta) =>
-				delta.changes = tail.changes.concat delta.changes
-				@emit "reading", _.sum delta.changes, "stat.size"
 
-				if delta.shouldPullAgain
-					@readDir path, delta
+		req =
+			if tail?
+				@_request "files/list_folder/continue", { cursor: tail.cursor }
+			else
+				@_request "files/list_folder", { path: path, recursive: true }
+
+		req
+			.catch => throw "Error reading the remote directory #{path}."
+			.then (chunk) =>
+				cursor = chunk.cursor
+				entries = (tail?.entries || []).concat chunk.entries
+				@emit "reading", entries.length
+
+				if chunk.has_more
+					@readDir path, { cursor, entries }
 				else
-					_(delta.changes)
-						.map (change) => change.stat
-						.filter isFile: true
+					a = _(entries)
+						.filter ".tag": "file"
 						.map (stats) => @_makeStats path, stats
 						.value()
+
+					console.log a
+					process.exit 1
 
 	uploadFile: (localFile, remotePath) =>
 		if localFile.size is 0
@@ -45,22 +55,26 @@ class DropboxApi extends EventEmitter
 		@client.moveAsync oldPath, newPath
 
 	getAccountInfo: =>
-		@_doRequest "users/get_current_account"
-			.catch => throw "Error retrieving the user info."
+		@_request "users/get_current_account"
+			.catch (e) =>
+				console.log e
+				throw "Error retrieving the user info."
 
 	_makeStats: (path, stats) =>
-		_.assign _.pick(
-			stats, "path", "name", "size"
-		), path: stats.path.replace path, ""
+		path: stats.path_lower.replace path, ""
+		name: stats.name
+		size: stats.size
+		mdate: stats.client_modified
 
-	_doRequest: (url, body) =>
+	_request: (url, body) =>
 		options =
 			auth: bearer: @token
 			url: "#{@URL}/#{url}"
 			body: body
 			json: true
 
-		request.postAsync(options).spread ({ statusCode, body }) =>
+		request.postAsync(options).then ({ statusCode, body }) =>
 			success = /2../.test statusCode
-			if not success then throw body
+			if not success
+				throw new Error(body.error_summary || body)
 			body

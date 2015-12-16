@@ -39,15 +39,14 @@ class Cli
 			.on "not-moved", onError
 
 	getFilesAndSync: =>
-		@backupTool.getInfo().then ({ usedQuota }) =>
-			onRead = (size) => @_showReadingState size, usedQuota
-			@backupTool.on "reading", onRead
+		onRead = (count) => @_showReadingState count
+		@backupTool.on "reading", onRead
 
-			@backupTool
-				.getFilesAndCompare @options.from, @options.to, @options.ignore
-				.then @_askForSync
-				.finally =>
-					@backupTool.removeListener "reading", onRead
+		@backupTool
+			.getFilesAndCompare @options.from, @options.to, @options.ignore
+			.then @_askForSync
+			.finally =>
+				@backupTool.removeListener "reading", onRead
 
 	showInfo: =>
 		@backupTool.getInfo().then (user) =>
@@ -131,8 +130,7 @@ class Cli
 					if ans is "y" then resolve() else reject()
 			ask()
 
-	_showReadingState: (size, total) =>
-		console.log(
-			"Reading remote files:".cyan
-			((size / total) * 100).toFixed(2).green + "%".cyan
+	_showReadingState: (count) =>
+		process.stdout.write(
+			"Reading remote files: #{count}\r".cyan, "utf8"
 		)
