@@ -10,7 +10,7 @@ class DirComparer
 		movedFiles =
 			_(_.clone deletedFiles)
 				.map (file) =>
-					movedFile = _.find newFiles, _.pick(file, "name", "size")
+					movedFile = _.find newFiles, _.pick(file, "name", "size", "mtime")
 
 					if movedFile?
 						_.pull deletedFiles, file
@@ -25,9 +25,9 @@ class DirComparer
 		modifiedFiles =
 			_(_.clone local)
 				.concat(remote)
-				.groupBy "path"
+				.groupBy (it) -> it.path.toLowerCase()
 				.filter ([l, r]) =>
-					(l? and r?) and (l.size isnt r.size)
+					(l? and r?) and (l.size isnt r.size or l.mtime isnt r.mtime)
 				.value()
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
