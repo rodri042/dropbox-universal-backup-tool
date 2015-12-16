@@ -84,7 +84,7 @@ class DropboxApi extends EventEmitter
 		mtime: new Date(stats.client_modified).setMilliseconds 0
 
 	_makeSaveOptions: (localFile, remotePath) =>
-		rareISODate = new Date(value).toISOString().replace /\.[0-9]{3}/, ""
+		rareISODate = new Date(localFile.mtime).toISOString().replace /\.[0-9]{3}/, ""
 		# (without milliseconds)
 
 		path: remotePath

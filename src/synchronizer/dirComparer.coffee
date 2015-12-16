@@ -25,7 +25,7 @@ class DirComparer
 		modifiedFiles =
 			_(_.clone local)
 				.concat(remote)
-				.groupBy "path"
+				.groupBy (it) -> it.path.toLowerCase()
 				.filter ([l, r]) =>
 					(l? and r?) and (l.size isnt r.size or l.mtime isnt r.mtime)
 				.value()
