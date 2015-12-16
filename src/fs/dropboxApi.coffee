@@ -11,16 +11,16 @@ module.exports =
 class DropboxApi extends EventEmitter
 	constructor: (@token) ->
 		@client = Promise.promisifyAll new Dropbox.Client { @token }
-		@URL = "https://$type.dropboxapi.com/2/"
+		@URL = "https://$type.dropboxapi.com/2"
 
 	readDir: (path, tail) =>
 		path = path.toLowerCase()
 
 		req =
 			if tail?
-				@_request "files/list_folder/continue", { cursor: tail.cursor }
+				@request "files/list_folder/continue", { cursor: tail.cursor }
 			else
-				@_request "files/list_folder", { path: path, recursive: true }
+				@request "files/list_folder", { path: path, recursive: true }
 
 		req
 			.catch => throw "Error reading the remote directory #{path}."
@@ -39,15 +39,14 @@ class DropboxApi extends EventEmitter
 
 	uploadFile: (localFile, remotePath) =>
 		if localFile.size is 0
-			@_request "files/upload", "",
+			@request "files/upload", "",
 				path: remotePath
 				mode: "overwrite"
 				mute: true
 		else
-			Promise.resolve()
-		# new DropboxResumableUpload(localFile, remotePath, @_request)
-		# 	.run (progress) =>
-		# 		@emit "progress", progress
+			new DropboxResumableUpload(localFile, remotePath, @)
+				.run (progress) =>
+					@emit "progress", progress
 
 	deleteFile: (path) =>
 		process.exit 8
@@ -58,7 +57,7 @@ class DropboxApi extends EventEmitter
 		#@client.moveAsync oldPath, newPath
 
 	getAccountInfo: =>
-		@_request "users/get_current_account"
+		@request "users/get_current_account"
 			.catch => throw "Error retrieving the user info."
 
 	_makeStats: (path, stats) =>
@@ -67,21 +66,24 @@ class DropboxApi extends EventEmitter
 		size: stats.size
 		mtime: new Date(stats.client_modified)
 
-	_request: (url, body, header) =>
-		baseUrl = @URL.replace "$type", (if header? then "content" else "api")
+	request: (url, body, header) =>
+		isBinary = header?
+		if _.isEmpty header
+			header = undefined
 
+		baseUrl = @URL.replace "$type", (if isBinary then "content" else "api")
 		options =
 			auth: bearer: @token
 			headers:
-				if header?
+				if isBinary
 					"Content-Type": "application/octet-stream"
-					"Dropbox-API-Arg": JSON.stringify header
+					"Dropbox-API-Arg": JSON.stringify(header)
 			url: "#{baseUrl}/#{url}"
 			body: body
-			json: if not header? then true
+			json: not isBinary
 
 		request.postAsync(options).then ({ statusCode, body }) =>
 			success = /2../.test statusCode
 			if not success
-				throw new Error(body.error_summary || body)
-			body
+				throw new Error(body.error_summary || body.error || body)
+			if isBinary then JSON.parse(body) else body

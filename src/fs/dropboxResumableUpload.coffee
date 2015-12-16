@@ -6,21 +6,21 @@ _ = require("lodash")
 module.exports =
 
 class DropboxResumableUpload extends EventEmitter
-	constructor: (@localFile, @remotePath, @request) ->
+	constructor: (@localFile, @remotePath, @api) ->
 		@BUFFER_SIZE = 1 * 1024 * 1024
 		@TIMEOUT = 120000
 
 	run: (onProgress) =>
 		new Promise (resolve) =>
 			@_initialize()
-			@_uploadChunk @_getCursor()
+			@_uploadChunk()
 
 			@on "chunk-ok", (progress) ->
 				onProgress progress
-				@_uploadChunk @_getCursor()
+				@_uploadChunk()
 
 			@on "chunk-error", ->
-				@_uploadChunk @_getCursor(), true
+				@_uploadChunk true
 
 			@on "complete", ->
 				@_dispose() ; resolve()
@@ -28,24 +28,34 @@ class DropboxResumableUpload extends EventEmitter
 	pendingBytes: =>
 		@localFile.size - @uploadedBytes
 
-	_getCursor: => @cursor
+	_uploadChunk: (isRetry) =>
+		cursor =
+			if @sessionId?
+				session_id: @sessionId, offset: @uploadedBytes
+			else {}
 
-	_uploadChunk: (cursor, isRetry) =>
 		if @pendingBytes() > 0
 			if not isRetry
 				bytesToRead = @_trimChunkIfNeeded()
 				fs.readSync @fd, @chunk, 0, bytesToRead
 
-			return @client.resumableUploadStepAsync(@chunk, @cursor)
+			stage = if @sessionId? then "append" else "start"
+			return @api.request("files/upload_session/#{stage}", @chunk, cursor)
 				.timeout @TIMEOUT
-				.catch => @emit "chunk-error"
-				.then (cursor) =>
-					if _.isObject cursor then @cursor = cursor
+				.then (result) =>
+					@sessionId = result.session_id if result?.session_id?
 					@uploadedBytes += @chunk.length
-					@emit "chunk-ok", @chunk.length
 
-		@client.resumableUploadFinishAsync(@remotePath, @cursor).finally =>
-			@emit "complete"
+					@emit "chunk-ok", @uploadedBytes
+				.catch => @emit "chunk-error"
+
+		@api.request("files/upload_session/finish", "", {
+			cursor: cursor
+			commit:
+				path: @remotePath
+				mode: "overwrite"
+				mute: false
+		}).finally => @emit "complete"
 
 	_initialize: =>
 		@fd = fs.openSync @localFile.path, "r"
@@ -53,7 +63,7 @@ class DropboxResumableUpload extends EventEmitter
 
 		@uploadedBytes = 0
 		@chunk = new Buffer(@BUFFER_SIZE)
-		@cursor = null
+		@sessionId = null
 
 	_trimChunkIfNeeded: =>
 		chunkSize = Math.min @pendingBytes(), @BUFFER_SIZE
