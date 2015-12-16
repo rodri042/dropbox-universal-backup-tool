@@ -65,7 +65,7 @@ class Cli
 			.map (it) =>
 				"  " + it.path.green + "\t" +
 				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".gray
+				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".white
 			.join "\n"
 		)
 
@@ -75,7 +75,7 @@ class Cli
 			.map ([local, remote]) =>
 				path = "  " + local.path.yellow + "\t" +
 					"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
-					"@ ".white + "#{moment(remote.mtime).format('YYYY-MM-DD')}".red + " -> ".gray + "#{moment(local.mtime).format('YYYY-MM-DD')}".green
+					"@ ".white + "#{moment(remote.mtime).format('YYYY-MM-DD')}".red + " -> ".white + "#{moment(local.mtime).format('YYYY-MM-DD')}".green
 			.join "\n"
 		)
 
@@ -85,7 +85,7 @@ class Cli
 			.map (it) =>
 				"  " + it.path.red + "\t" +
 				"(#{filesize it.size})".white + "\t" +
-				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".gray
+				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".white
 			.join "\n"
 		)
 
