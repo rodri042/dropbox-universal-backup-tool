@@ -1,3 +1,3 @@
 # dropbox-unix-backup-tool
 
-![screenshot](https://cloud.githubusercontent.com/assets/1631752/11833238/7da42390-a39f-11e5-8b53-140b50c7494f.png)
+![screenshot](https://cloud.githubusercontent.com/assets/1631752/11833358/78d3b5e6-a3a0-11e5-884c-c7f08710dfd9.png)

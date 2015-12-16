@@ -45,7 +45,7 @@ options = require("node-getopt").create [
 
 options.setHelp(
 	"Usages:\n".cyan +
-	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [ignore='[\"^node_modules$\"]'] [--yes]\n".cyan +
+	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--ignore='[\"^node_modules$\"]'] [--yes]\n".cyan +
 	"./dxubt.js --me --token=blah\n".cyan +
 	"\n" +
 	"[[OPTIONS]]".white
