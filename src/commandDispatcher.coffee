@@ -1,6 +1,5 @@
 Cli = require("./cli")
 PrettyError = require("pretty-error")
-isPromise = require("is-promise")
 _ = require("lodash")
 require("colors")
 

@@ -32,13 +32,10 @@ class DropboxApi extends EventEmitter
 				if chunk.has_more
 					@readDir path, { cursor, entries }
 				else
-					a = _(entries)
+					_(entries)
 						.filter ".tag": "file"
 						.map (stats) => @_makeStats path, stats
 						.value()
-
-					console.log a
-					process.exit 1
 
 	uploadFile: (localFile, remotePath) =>
 		if localFile.size is 0
@@ -49,10 +46,10 @@ class DropboxApi extends EventEmitter
 				@emit "progress", progress
 
 	deleteFile: (path) =>
-		@client.deleteAsync path
+		#@client.deleteAsync path
 
 	moveFile: (oldPath, newPath) =>
-		@client.moveAsync oldPath, newPath
+		#@client.moveAsync oldPath, newPath
 
 	getAccountInfo: =>
 		@_request "users/get_current_account"
@@ -64,7 +61,7 @@ class DropboxApi extends EventEmitter
 		path: stats.path_lower.replace path, ""
 		name: stats.name
 		size: stats.size
-		mdate: stats.client_modified
+		mtime: new Date(stats.client_modified)
 
 	_request: (url, body) =>
 		options =

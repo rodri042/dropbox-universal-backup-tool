@@ -1,5 +1,6 @@
 BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
+moment = require("moment")
 prompt = require("readline")
 ProgressBar = require("progress")
 _ = require("lodash")
@@ -63,7 +64,8 @@ class Cli
 		console.log(comparision.newFiles
 			.map (it) =>
 				"  " + it.path.green + "\t" +
-				"(#{filesize it.size})".white
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".gray
 			.join "\n"
 		)
 
@@ -71,8 +73,9 @@ class Cli
 
 		console.log(comparision.modifiedFiles
 			.map ([local, remote]) =>
-				path = "  " + local.path.yellow
-				path += "\t" + "(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white
+				path = "  " + local.path.yellow + "\t" +
+					"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
+					"@ ".white + "#{moment(remote.mtime).format('YYYY-MM-DD')}".red + " -> ".gray + "#{moment(local.mtime).format('YYYY-MM-DD')}".green
 			.join "\n"
 		)
 
@@ -81,7 +84,8 @@ class Cli
 		console.log(comparision.deletedFiles
 			.map (it) =>
 				"  " + it.path.red + "\t" +
-				"(#{filesize it.size})".white
+				"(#{filesize it.size})".white + "\t" +
+				"@ #{moment(it.mtime).format('YYYY-MM-DD')}".gray
 			.join "\n"
 		)
 
