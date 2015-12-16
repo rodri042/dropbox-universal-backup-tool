@@ -7,7 +7,7 @@ module.exports =
 
 class DropboxResumableUpload extends EventEmitter
 	constructor: (@localFile, @remotePath, @api) ->
-		@BUFFER_SIZE = 1 * 1024 * 1024
+		@BUFFER_SIZE = CHUNK_SIZE * 1024 * 1024
 		@TIMEOUT = 120000
 
 	run: (onProgress) =>

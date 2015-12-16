@@ -3,6 +3,11 @@ PrettyError = require("pretty-error")
 _ = require("lodash")
 require("colors")
 
+#####################
+#  Chunk size in MB #
+global.CHUNK_SIZE = 1
+#####################
+
 actions =
 	"me": ->
 		new Cli(config.checkParams "token").showInfo()
