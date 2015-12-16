@@ -3,7 +3,6 @@ Promise = require("bluebird")
 { EventEmitter } = require("events")
 fs = Promise.promisifyAll require("fs")
 request = Promise.promisifyAll require("request")
-moment = require("moment")
 _ = require("lodash")
 
 module.exports =
@@ -45,12 +44,12 @@ class DropboxApi extends EventEmitter
 					@emit "progress", progress
 
 	deleteFile: (path) =>
-		process.exit 8
-		#@client.deleteAsync path
+		@request "files/delete", { path }
 
 	moveFile: (oldPath, newPath) =>
-		process.exit 8
-		#@client.moveAsync oldPath, newPath
+		@request "files/move",
+			from_path: oldPath
+			to_path: newPath
 
 	getAccountInfo: =>
 		@request "users/get_current_account"
@@ -85,7 +84,10 @@ class DropboxApi extends EventEmitter
 		mtime: new Date(stats.client_modified).setMilliseconds 0
 
 	_makeSaveOptions: (localFile, remotePath) =>
+		rareISODate = new Date(value).toISOString().replace /\.[0-9]{3}/, ""
+		# (without milliseconds)
+
 		path: remotePath
 		mode: "overwrite"
-		client_modified: moment(localFile.mtime).format("YYYY-MM-DDTHH:mm:ss") + "Z"
+		client_modified: rareISODate
 		mute: true
