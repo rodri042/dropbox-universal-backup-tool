@@ -11,15 +11,11 @@ class FsWalker
 			.then =>
 				new Promise (resolve) =>
 					files = []
-					walker = walk.walk path, followLinks: true
+					walker = walk.walk path, followLinks: true, filters: ignore
 
 					walker.on "file", (root, stats, next) =>
 						stats = @_makeStats path, root, stats
-
-						ignored = ignore.some (exp) =>
-							new RegExp(exp, "i").test stats.path
-
-						if not ignored then files.push stats
+						files.push stats
 
 						next()
 
