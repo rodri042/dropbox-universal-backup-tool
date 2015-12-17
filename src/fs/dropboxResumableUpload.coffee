@@ -46,7 +46,7 @@ class DropboxResumableUpload extends EventEmitter
 					@sessionId = result.session_id if result?.session_id?
 					@uploadedBytes += @chunk.length
 
-					@emit "chunk-ok", @uploadedBytes
+					@emit "chunk-ok", @chunk.length
 				.catch => @emit "chunk-error"
 
 		@api.request("files/upload_session/finish", "", {
