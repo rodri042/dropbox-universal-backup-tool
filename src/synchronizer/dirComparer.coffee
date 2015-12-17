@@ -8,8 +8,9 @@ class DirComparer
 		deletedFiles = @_missingItems remote, local
 
 		movedFiles =
-			_(_.clone deletedFiles)
+			_(deletedFiles)
 				.map (file) =>
+					if not file? then return
 					movedFile = _.find newFiles, _.pick(file, "name", "size", "mtime")
 
 					if movedFile?
@@ -22,16 +23,15 @@ class DirComparer
 				.compact()
 				.value()
 
-		modifiedFiles =
-			_(_.clone local)
-				.concat(remote)
-				.groupBy (it) -> it.path.toLowerCase()
-				.filter ([l, r]) =>
-					(l? and r?) and (l.size isnt r.size or l.mtime isnt r.mtime)
-				.value()
+		modifiedFiles = _.filter local, (l) =>
+			r = @_findItem l, remote
+			r? and (l.size isnt r.size or l.mtime isnt r.mtime)
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
 
 	_missingItems: (one, another) =>
 		one.filter (o) =>
-			not _.find another, (a) => o.path.toLowerCase() is a.path.toLowerCase()
+			not @_findItem o, another
+
+	_findItem: (item, collection) =>
+		_.find collection, (it) => it.path.toLowerCase() is item.path.toLowerCase()
