@@ -76,9 +76,9 @@ class Cli
 
 		console.log(comparision.modifiedFiles
 			.map ([local, remote]) =>
-				path = "  " + local.path.yellow + "\t" +
-					"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
-					"@ ".white + "#{formatDate(remote)}".red + " -> ".white + "#{formatDate(local)}".green
+				"  " + local.path.yellow + "\t" +
+				"(".white + "#{filesize remote.size}".red + " -> ".white + "#{filesize local.size}".green + ")".white + "\t" +
+				"@ ".white + "#{formatDate(remote)}".red + " -> ".white + "#{formatDate(local)}".green
 			.join "\n"
 		)
 

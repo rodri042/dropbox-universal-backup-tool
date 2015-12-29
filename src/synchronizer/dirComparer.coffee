@@ -7,25 +7,26 @@ class DirComparer
 		newFiles = @_missingItems local, remote
 		deletedFiles = @_missingItems remote, local
 
-		movedFiles =
-			_(deletedFiles)
-				.map (file) =>
-					if not file? then return
-					movedFile = _.find newFiles, _.pick(file, "name", "size", "mtime")
+		movedFiles = []
+		_.each deletedFiles, (file) =>
+			if not file? then return # because we are deleting while iterating the array
+			movedFile = _.find newFiles, _.pick(file, "name", "size", "mtime")
+			if not movedFile? then return
 
-					if movedFile?
-						_.pull deletedFiles, file
-						_.pull newFiles, movedFile
+			_.pull deletedFiles, file
+			_.pull newFiles, movedFile
 
-						oldPath: file.path
-						newPath: movedFile.path
-					else false
-				.compact()
-				.value()
+			movedFiles.push
+				oldPath: file.path
+				newPath: movedFile.path
 
-		modifiedFiles = _.filter local, (l) =>
+		modifiedFiles = []
+		_.each local, (l) =>
 			r = @_findItem l, remote
-			r? and (l.size isnt r.size or l.mtime isnt r.mtime)
+			isModified = r? and (l.size isnt r.size or l.mtime isnt r.mtime)
+
+			if isModified
+				modifiedFiles.push [l, r]
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
 
