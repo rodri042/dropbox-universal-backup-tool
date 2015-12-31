@@ -3,6 +3,7 @@ Promise = require("bluebird")
 { EventEmitter } = require("events")
 fs = Promise.promisifyAll require("fs")
 request = Promise.promisifyAll require("request")
+escapeUnicode = require("../helpers/escapeUnicode")
 _ = require("lodash")
 
 module.exports =
@@ -57,8 +58,9 @@ class DropboxApi extends EventEmitter
 
 	request: (url, body, header) =>
 		isBinary = header?
-		if _.isEmpty header
-			header = undefined
+		header =
+			if _.isEmpty header then undefined
+			else escapeUnicode JSON.stringify(header)
 
 		baseUrl = @URL.replace "$type", (if isBinary then "content" else "api")
 		options =
@@ -66,7 +68,7 @@ class DropboxApi extends EventEmitter
 			headers:
 				if isBinary
 					"Content-Type": "application/octet-stream"
-					"Dropbox-API-Arg": JSON.stringify(header)
+					"Dropbox-API-Arg": header
 			url: "#{baseUrl}/#{url}"
 			body: body
 			json: not isBinary
