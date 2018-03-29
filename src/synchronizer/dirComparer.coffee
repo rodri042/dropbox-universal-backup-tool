@@ -4,8 +4,8 @@ module.exports = new
 
 class DirComparer
 	compare: (local, remote) =>
-		newFiles = @_missingItems local, remote
-		deletedFiles = @_missingItems remote, local
+		newFiles = @_missingItems local, remote, "new"
+		deletedFiles = @_missingItems remote, local, "deleted"
 
 		movedFiles = []
 		_.each deletedFiles, (file) =>
@@ -30,9 +30,9 @@ class DirComparer
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
 
-	_missingItems: (one, another) =>
+	_missingItems: (one, another, a) =>
 		one.filter (o) =>
 			not @_findItem o, another
 
 	_findItem: (item, collection) =>
-		_.find collection, (it) => it.path.toLowerCase() is item.path.toLowerCase()
+		_.find collection, (it) => _.deburr(it.path.toLowerCase()) is _.deburr(item.path.toLowerCase())

@@ -2,6 +2,8 @@ Promise = require("bluebird")
 walk = require("walk")
 fs = Promise.promisifyAll require("fs")
 
+IGNORED_FILE = ".DS_Store"
+
 module.exports = new
 
 class FsWalker
@@ -15,7 +17,7 @@ class FsWalker
 
 					walker.on "file", (root, stats, next) =>
 						stats = @_makeStats path, root, stats
-						files.push stats
+						files.push stats if stats.name isnt IGNORED_FILE
 
 						next()
 
