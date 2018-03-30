@@ -1,6 +1,7 @@
 Promise = require("bluebird")
 walk = require("walk")
 fs = Promise.promisifyAll require("fs")
+normalizePath = require("../helpers/normalizePath")
 
 IGNORED_FILE = ".DS_Store"
 
@@ -12,12 +13,12 @@ class FsWalker
 			.catch => throw "Error reading the local directory #{path}."
 			.then =>
 				new Promise (resolve) =>
-					files = []
+					files = {}
 					walker = walk.walk path, followLinks: true, filters: ignore
 
 					walker.on "file", (root, stats, next) =>
 						stats = @_makeStats path, root, stats
-						files.push stats if stats.name isnt IGNORED_FILE
+						files[normalizePath(stats.path)] = stats if stats.name isnt IGNORED_FILE
 
 						next()
 

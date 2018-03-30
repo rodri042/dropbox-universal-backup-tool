@@ -1,11 +1,12 @@
+normalizePath = require("../helpers/normalizePath")
 _ = require("lodash")
 
 module.exports = new
 
 class DirComparer
 	compare: (local, remote) =>
-		newFiles = @_missingItems local, remote, "new"
-		deletedFiles = @_missingItems remote, local, "deleted"
+		newFiles = @_missingItems local, remote
+		deletedFiles = @_missingItems remote, local
 
 		movedFiles = []
 		_.each deletedFiles, (file) =>
@@ -30,9 +31,12 @@ class DirComparer
 
 		{ newFiles, modifiedFiles, deletedFiles, movedFiles }
 
-	_missingItems: (one, another, a) =>
-		one.filter (o) =>
-			not @_findItem o, another
+	_missingItems: (one, another) =>
+		missing = []
+		for path, o of one
+			if not @_findItem o, another
+				missing.push o
+		missing
 
 	_findItem: (item, collection) =>
-		_.find collection, (it) => _.deburr(it.path.toLowerCase()) is _.deburr(item.path.toLowerCase())
+		collection[normalizePath(item.path)]

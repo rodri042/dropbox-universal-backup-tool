@@ -4,6 +4,7 @@ Promise = require("bluebird")
 fs = Promise.promisifyAll require("fs")
 request = Promise.promisifyAll require("request")
 escapeUnicode = require("../helpers/escapeUnicode")
+normalizePath = require("../helpers/normalizePath")
 _ = require("lodash")
 
 module.exports =
@@ -34,6 +35,8 @@ class DropboxApi extends EventEmitter
 					_(entries)
 						.filter ".tag": "file"
 						.map (stats) => @_makeStats path, stats
+						.keyBy "path"
+						.mapKeys (v, k) => normalizePath k
 						.value()
 
 	uploadFile: (localFile, remotePath) =>

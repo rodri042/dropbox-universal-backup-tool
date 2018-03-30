@@ -101,8 +101,8 @@ class Cli
 			.join "\n"
 		)
 
-		totalUpload = filesize _.sum(comparision.newFiles, "size")
-		totalReUpload = filesize _.sum(comparision.modifiedFiles.map(([l]) => l), "size")
+		totalUpload = filesize _.sumBy(comparision.newFiles, "size")
+		totalReUpload = filesize _.sumBy(comparision.modifiedFiles.map(([l]) => l), "size")
 		console.log "\nTotals:".white.bold.underline
 		console.log "  #{comparision.newFiles.length} to upload (#{totalUpload}).".white
 		console.log "  #{comparision.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
