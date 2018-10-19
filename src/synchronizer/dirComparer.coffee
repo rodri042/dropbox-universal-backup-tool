@@ -9,12 +9,11 @@ class DirComparer
 		deletedFiles = @_missingItems remote, local
 
 		movedFiles = []
-		_.each deletedFiles, (file) =>
-			if not file? then return # because we are deleting while iterating the array
+		for file, i in deletedFiles by -1
 			movedFile = _.find newFiles, _.pick(file, "name", "size", "mtime")
-			if not movedFile? then return
+			if not movedFile? then continue
 
-			_.pull deletedFiles, file
+			deletedFiles.splice i, 1
 			_.pull newFiles, movedFile
 
 			movedFiles.push
