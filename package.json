@@ -1,14 +1,14 @@
 {
   "name": "dxubt",
   "version": "1.0.0",
-  "description": "Dropbox Unix Backup Tool",
+  "description": "Dropbox Universal Backup Tool",
   "main": "index.js",
   "scripts": {
     "start": "node dxubt.js"
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/rodri042/dropbox-unix-backup-tool.git"
+    "url": "git+ssh://git@github.com/rodri042/dropbox-universal-backup-tool.git"
   },
   "author": "Rodrigo Alfonso",
   "license": "ISC",
