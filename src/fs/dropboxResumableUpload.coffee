@@ -59,7 +59,7 @@ class DropboxResumableUpload extends EventEmitter
 		if not @fd? then throw "Unable to open the file"
 
 		@uploadedBytes = 0
-		@chunk = new Buffer(@BUFFER_SIZE)
+		@chunk = new Buffer.alloc(@BUFFER_SIZE)
 		@sessionId = null
 
 	_trimChunkIfNeeded: =>
