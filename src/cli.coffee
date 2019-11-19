@@ -1,8 +1,8 @@
 BackupTool = require("./synchronizer/backupTool")
+MultiProgress = require("multi-progress")
 filesize = require("filesize")
 moment = require("moment")
 prompt = require("readline")
-MultiProgress = require("multi-progress")
 _ = require("lodash")
 require("colors")
 

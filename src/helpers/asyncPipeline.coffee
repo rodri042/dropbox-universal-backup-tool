@@ -1,8 +1,11 @@
 Promise = require("bluebird")
 asyncQueue = require("async/queue")
+_ = require("lodash");
 require("colors")
 
 module.exports = (actions, concurrency) ->
+	return Promise.resolve() if _.isEmpty actions
+
 	new Promise (resolve) ->
 		queue = asyncQueue((action, done) ->
 			promise = action()
