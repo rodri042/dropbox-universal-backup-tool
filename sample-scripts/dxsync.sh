@@ -6,4 +6,4 @@ else
   OPTION=""
 fi
 
-~/data/scripts/dxubt/dxubt.js --from="$1" --to="/HDD/data/$2" --ignore='["/node_modules", "/bower_components", ".git", ".tmp"]' --token=$SECRET_TOKEN $OPTION
+~/data/scripts/dxubt/dxubt.js --from="$1" --to="/HDD/data/$2" --concurrency=5 --ignore='["/node_modules", "/bower_components", ".git", ".tmp"]' --token=$SECRET_TOKEN $OPTION

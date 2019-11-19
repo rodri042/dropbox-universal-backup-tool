@@ -45,7 +45,7 @@ class DropboxApi extends EventEmitter
 		else
 			new DropboxResumableUpload(localFile, remotePath, @)
 				.run (progress) =>
-					@emit "progress", progress
+					@emit "progress", { file: localFile, progress }
 
 	deleteFile: (path) =>
 		@request "files/delete", { path }

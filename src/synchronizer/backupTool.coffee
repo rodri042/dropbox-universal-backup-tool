@@ -9,7 +9,7 @@ _ = require("lodash")
 module.exports =
 
 class BackupTool extends EventEmitter
-	constructor: ({ token, @from, @to }) ->
+	constructor: ({ token, @from, @to, @concurrency }) ->
 		@dropboxApi = new DropboxApi(token)
 		@dropboxApi.on "reading", (e) => @emit "reading", e
 		@dropboxApi.on "progress", (e) => @emit "progress", e
@@ -36,19 +36,18 @@ class BackupTool extends EventEmitter
 		deletions = getActions "deletedFiles", @_deleteFile
 		moves = getActions "movedFiles", @_moveFile
 
-		asyncPipeline(uploads).then =>
-			asyncPipeline(modifications).then =>
-				asyncPipeline(deletions).then =>
+		asyncPipeline(uploads, @concurrency).then =>
+			asyncPipeline(modifications, @concurrency).then =>
+				asyncPipeline(deletions, @concurrency).then =>
 					asyncPipeline moves
 
 	getInfo: => @dropboxApi.getAccountInfo()
 
 	_uploadFile: (file) =>
-		@emit "uploading", file
-
 		localFile = _.assign _.clone(file),	path: @from + file.path
+		@emit "uploading", localFile
 		@dropboxApi.uploadFile(localFile, @to + file.path)
-			.then => @emit "uploaded", file
+			.then => @emit "uploaded", localFile
 			.catch (e) => @emit "not-uploaded", e
 
 	_deleteFile: (file) =>

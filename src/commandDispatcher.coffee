@@ -4,7 +4,7 @@ _ = require("lodash")
 require("colors")
 
 #####################
-#  Chunk size in MB #
+# Chunk size in MB  #
 global.CHUNK_SIZE = 1
 #####################
 
@@ -13,6 +13,12 @@ actions =
 		new Cli(config.checkParams "token").showInfo()
 	"from": ->
 		opts = config.checkParams("to", "token")
+
+		concurrency = parseInt opts.concurrency
+		if (_.isFinite(concurrency) and concurrency > 1)
+			opts.concurrency = concurrency
+		else
+			opts.concurrency = 1
 
 		ignore = try JSON.parse opts.ignore
 		if ignore?
@@ -37,6 +43,7 @@ options = require("node-getopt").create [
 	["t", "to=DROPBOX_PATH", "Dropbox destination path."]
 	["k", "token=TOKEN", "Dropbox token."]
 	["i", "ignore=REGEXPS", "List of regular expressions to ignore."]
+	["c", "concurrency=5", "Number of simultaneous operations."]
 	["y", "yes", "Don't review changes before the sync."]
 	["m", "me", "Show the user's Dropbox information."]
 	["v", "version", "Display the version."]
@@ -45,7 +52,7 @@ options = require("node-getopt").create [
 
 options.setHelp(
 	"Usages:\n".cyan +
-	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--ignore='[\"^node_modules$\"]'] [--yes]\n".cyan +
+	"./dxubt.js --from=\"/home\" --to=\"/\" --token=blah [--concurrency=5] [--ignore='[\"^node_modules$\"]'] [--yes]\n".cyan +
 	"./dxubt.js --me --token=blah\n".cyan +
 	"\n" +
 	"[[OPTIONS]]".white

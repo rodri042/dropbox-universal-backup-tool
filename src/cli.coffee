@@ -2,7 +2,7 @@ BackupTool = require("./synchronizer/backupTool")
 filesize = require("filesize")
 moment = require("moment")
 prompt = require("readline")
-ProgressBar = require("progress")
+MultiProgress = require("multi-progress")
 _ = require("lodash")
 require("colors")
 
@@ -15,22 +15,25 @@ class Cli
 			console.log " ^ it didn't work".red
 			console.log "#{e}".red
 
+		@multiProgress = new MultiProgress(process.stdout);
+		@progressBars = {}
+
 		@backupTool
 			.on "still-reading", =>
 				console.log "Still reading local files...".cyan
 			.on "uploading", (file) =>
 				console.log "Uploading ".white + file.path.yellow + " (#{filesize file.size})...".white
 				if file.size > 0
-					@progress = new ProgressBar "[:bar] [:percent] :etas",
+					@progressBars[file.path] = @multiProgress.newBar "[:bar] [:percent] :etas",
 						complete: '\u001b[42m \u001b[0m'
 						incomplete: '\u001b[41m \u001b[0m'
 						total: file.size
-					@progress.tick 0
-			.on "progress", (delta) =>
-				@progress?.tick delta
-			.on "uploaded", =>
-				@progress?.terminate()
-				@progress = null
+					@progressBars[file.path].tick 0
+			.on "progress", ({ file, progress }) =>
+				@progressBars[file.path]?.tick progress
+			.on "uploaded", (file) =>
+				@progressBars[file.path]?.terminate()
+				delete @progressBars[file.path]
 			.on "deleting", (file) =>
 				console.log "Deleting ".white + file.path.yellow + "...".white
 			.on "moving", (file) =>
