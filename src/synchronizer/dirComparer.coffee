@@ -55,10 +55,14 @@ class DirComparer
 			for filePath, file of remote
 				continue if file.isFolder
 
-				if _.startsWith(file.path, folder.path + "/")
+				if @_isInside file, folder
 					isEmpty = false
 					break
 
 			empty.push folder if isEmpty
 
-		empty
+		empty.filter (parent) =>
+			not _.some empty, (child) => @_isInside child, parent
+
+	_isInside: (node, folder) =>
+		_.startsWith node.path, folder.path + "/"
