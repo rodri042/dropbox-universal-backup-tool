@@ -34,8 +34,8 @@ class Cli
 			.on "uploaded", (file) =>
 				@progressBars[file.path]?.terminate()
 				delete @progressBars[file.path]
-			.on "deleting", (file) =>
-				console.log "Deleting ".white + file.path.yellow + "...".white
+			.on "deleting", (entry) =>
+				console.log "Deleting ".white + entry.path.yellow + "...".white
 			.on "moving", (file) =>
 				console.log "Moving ".white + file.oldPath.yellow + " to ".white + file.newPath.yellow + "...".white
 			.on "not-uploaded", onError
@@ -65,7 +65,15 @@ class Cli
 		formatDate = (it) =>
 			moment(it.mtime).format "YYYY-MM-DD HH:mm:ss"
 
-		console.log "\n\nNew files:".white.bold.underline
+		console.log "\n\nEmpty folders:".white.bold.underline
+
+		console.log(comparision.emptyFolders
+			.map (it) =>
+				"  " + it.path.red
+			.join "\n"
+		)
+
+		console.log "\nNew files:".white.bold.underline
 
 		console.log(comparision.newFiles
 			.map (it) =>
@@ -107,12 +115,13 @@ class Cli
 		totalUpload = filesize _.sumBy(comparision.newFiles, "size")
 		totalReUpload = filesize _.sumBy(comparision.modifiedFiles.map(([l]) => l), "size")
 		console.log "\nTotals:".white.bold.underline
+		console.log "  #{comparision.emptyFolders.length} to clean.".white
 		console.log "  #{comparision.newFiles.length} to upload (#{totalUpload}).".white
 		console.log "  #{comparision.modifiedFiles.length} to re-upload (#{totalReUpload}).".white
 		console.log "  #{comparision.deletedFiles.length} to delete.".white
 		console.log "  #{comparision.movedFiles.length} to move.".white
 
-		totalChanges = comparision.newFiles.length + comparision.modifiedFiles.length + comparision.deletedFiles.length + comparision.movedFiles.length
+		totalChanges = comparision.emptyFolders.length + comparision.newFiles.length + comparision.modifiedFiles.length + comparision.deletedFiles.length + comparision.movedFiles.length
 		if totalChanges is 0 then return
 
 		@_doYouAccept()

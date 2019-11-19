@@ -31,15 +31,17 @@ class BackupTool extends EventEmitter
 			comparision[group].map (file) =>
 				=> action file
 
+		cleans = getActions "emptyFolders", @_deleteEntry
 		uploads = getActions "newFiles", @_uploadFile
 		modifications = getActions "modifiedFiles", @_reuploadFile
-		deletions = getActions "deletedFiles", @_deleteFile
+		deletions = getActions "deletedFiles", @_deleteEntry
 		moves = getActions "movedFiles", @_moveFile
 
-		asyncPipeline(uploads, @concurrency).then =>
-			asyncPipeline(modifications, @concurrency).then =>
-				asyncPipeline(deletions, @concurrency).then =>
-					asyncPipeline moves
+		asyncPipeline(cleans, @concurrency).then =>
+			asyncPipeline(uploads, @concurrency).then =>
+				asyncPipeline(modifications, @concurrency).then =>
+					asyncPipeline(deletions, @concurrency).then =>
+						asyncPipeline moves
 
 	getInfo: => @dropboxApi.getAccountInfo()
 
@@ -50,10 +52,10 @@ class BackupTool extends EventEmitter
 			.then => @emit "uploaded", localFile
 			.catch (e) => @emit "not-uploaded", e
 
-	_deleteFile: (file) =>
+	_deleteEntry: (file) =>
 		@emit "deleting", file
 
-		@dropboxApi.deleteFile @to + file.path
+		@dropboxApi.deleteEntry @to + file.path
 			.then => @emit "deleted", file
 			.catch (e) => @emit "not-deleted", e
 

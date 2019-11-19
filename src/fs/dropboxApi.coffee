@@ -33,7 +33,6 @@ class DropboxApi extends EventEmitter
 					@readDir path, { cursor, entries }
 				else
 					_(entries)
-						.filter ".tag": "file"
 						.map (stats) => @_makeStats path, stats
 						.keyBy "path"
 						.mapKeys (v, k) => normalizePath k
@@ -47,7 +46,7 @@ class DropboxApi extends EventEmitter
 				.run (progress) =>
 					@emit "progress", { file: localFile, progress }
 
-	deleteFile: (path) =>
+	deleteEntry: (path) =>
 		@request "files/delete", { path }
 
 	moveFile: (oldPath, newPath) =>
@@ -83,10 +82,17 @@ class DropboxApi extends EventEmitter
 			if isBinary then JSON.parse(body) else body
 
 	_makeStats: (path, stats) =>
-		path: stats.path_lower.replace path, ""
-		name: stats.name
-		size: stats.size
-		mtime: new Date(stats.client_modified).setMilliseconds 0
+		isFolder = stats[".tag"] is "folder"
+
+		if isFolder
+			path: stats.path_lower.replace path, ""
+			name: stats.name
+			isFolder: true
+		else
+			path: stats.path_lower.replace path, ""
+			name: stats.name
+			size: stats.size
+			mtime: new Date(stats.client_modified).setMilliseconds 0
 
 	_makeSaveOptions: (localFile, remotePath) =>
 		rareISODate = new Date(localFile.mtime).toISOString().replace /\.[0-9]{3}/, ""
