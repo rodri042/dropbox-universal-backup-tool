@@ -82,6 +82,12 @@ class DropboxApi extends EventEmitter
 			if isBinary then JSON.parse(body) else body
 
 	_makeStats: (path, stats) =>
+		if stats is undefined
+			console.error "ERROR: stats is undefined"
+			console.log "Path:", path
+			console.log "Stats:", JSON.stringify(stats, null, 2)
+			exit 1
+
 		isFolder = stats[".tag"] is "folder"
 
 		if isFolder
