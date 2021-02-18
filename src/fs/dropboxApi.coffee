@@ -86,7 +86,7 @@ class DropboxApi extends EventEmitter
 			console.error "ERROR: stats is undefined"
 			console.log "Path:", path
 			console.log "Stats:", JSON.stringify(stats, null, 2)
-			exit 1
+			process.exit 1
 
 		isFolder = stats[".tag"] is "folder"
 
